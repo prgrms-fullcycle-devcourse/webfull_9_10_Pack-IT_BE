@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// 유저 테이블
+model User {
+  id           Int           @id @default(autoincrement())
+  email        String        @unique
+  kakaoUid     String        @unique @map("kakao_uid") // DB에는 kakao_uid로 저장
+  nickname     String
+  createdAt    DateTime      @default(now()) @map("created_at")
+  
+  sentLetters  Letter[]      @relation("SentLetters")
+  savedLetters SavedLetter[] @relation("UserSavedLetters")
+
+  @@map("user")
+}
+
+// 편지 테이블
+model Letter {
+  id           String        @id @default(uuid())
+  senderId     Int?          @map("sender_id")
+  senderName   String        @map("sender_name")
+  receiverName String        @map("receiver_name")
+  category     String
+  content      String        @db.Text             
+  theme        Int
+  publishedAt  DateTime      @default(now()) @map("published_at")
+
+  sender       User?         @relation("SentLetters", fields: [senderId], references: [id])
+  savedRecords SavedLetter[] @relation("LetterSavedRecords")
+
+  @@map("letter")
+}
+
+// 보관함 테이블 (유저와 편지의 N:M 관계를 위한 연결 테이블)
+model SavedLetter {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  letterId  String   @map("letter_id")
+
+  user      User     @relation("UserSavedLetters", fields: [userId], references: [id])
+  letter    Letter   @relation("LetterSavedRecords", fields: [letterId], references: [id])
+
+  @@map("saved_letter")
+}
