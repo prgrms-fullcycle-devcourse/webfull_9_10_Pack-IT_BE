@@ -39,16 +39,39 @@ pnpm run dev
 ## 📂 폴더 구조
 
 ```text
-src/
-├── config/           # 환경변수, 데이터베이스, Passport 등 초기 설정
-├── controllers/      # 클라이언트 요청(Request) 처리 및 응답(Response) 반환
-├── routes/           # API 엔드포인트 URL 라우팅
-├── services/         # 비즈니스 로직 및 외부 API(Gemini) 연동 수행
-├── schemas/          # Zod 를 활용한 데이터 유효성 검사 스키마
-├── middlewares/      # JWT 인증, 에러 핸들링 등 공통 처리 로직
-├── prisma/           # 데이터베이스 스키마 모델 정의 (schema.prisma)
-├── types/            # 공통 TypeScript 타입 및 인터페이스 정의
-└── utils/            # 날짜 변환, 포맷팅 등 재사용 가능한 유틸리티 함수
+src
+├── config
+│   ├── init.sql
+│   ├── db.ts
+│   ├── aws.ts
+│   ├── gemini.ts      
+│   └── swagger.ts
+├── repositories
+│   ├── auth.repository.ts
+│   ├── letter.repository.ts
+│   └── user.repository.ts
+├── routes
+│   ├── main.routes.ts
+│   ├── auth.routes.ts
+│   ├── letters.routes.ts
+│   └── users.routes.ts
+├── services
+│   ├── auth.service.ts
+│   ├── letter.service.ts
+│   ├── gemini.service.ts
+│   └── user.service.ts
+├── utils
+│   ├── constants
+│   │   └── response.ts
+│   ├── helpers
+│   │   └── ai.ts     
+│   └── middlewares
+│       ├── auth.middleware.ts  
+│       └── validator.ts       
+├── generated
+│   └── api.ts
+├── app.ts               
+└── server.ts
 ```
 
 ## 📝 코딩 컨벤션
