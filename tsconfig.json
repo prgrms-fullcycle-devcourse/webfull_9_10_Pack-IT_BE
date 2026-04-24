@@ -1,45 +1,36 @@
 {
-  // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
-    // File Layout
+    // 📂 File Layout (파일 경로 설정)
     "rootDir": "./src",
     "outDir": "./dist",
 
-    // Environment Settings
-    // See also https://aka.ms/tsconfig/module
+    // 🌍 Environment Settings (환경 설정)
     "module": "nodenext",
     "target": "esnext",
-    "types": [],
-    // For nodejs:
-    // "lib": ["esnext"],
-    // "types": ["node"],
-    // and npm install -D @types/node
+    "lib": ["esnext"],
+    "types": ["node"],
 
-    // Other Outputs
+    // 🌟 전역 커스텀 타입 폴더 인식 설정 (가장 중요!)
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+
+    // 📦 Other Outputs (출력 설정)
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
 
-    // Stricter Typechecking Options
+    // 🛡️ Stricter Typechecking (엄격한 타입 검사)
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
-
-    // Style Options
-    // "noImplicitReturns": true,
-    // "noImplicitOverride": true,
-    // "noUnusedLocals": true,
-    // "noUnusedParameters": true,
-    // "noFallthroughCasesInSwitch": true,
-    // "noPropertyAccessFromIndexSignature": true,
-
-    // Recommended Options
     "strict": true,
-    "jsx": "react-jsx",
+
+    // 🚀 Recommended Options (권장 및 최적화 설정)
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true
   },
-  "include": ["src/**/*"]
+
+  // 🎯 컴파일에 포함할 파일 경로 (커스텀 타입 파일 명시적 포함)
+  "include": ["src/**/*", "src/types/**/*.d.ts"]
 }
