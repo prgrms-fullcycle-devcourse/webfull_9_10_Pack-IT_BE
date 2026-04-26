@@ -90,7 +90,7 @@ router.post('/ai/generate', async (req: Request, res: Response) => {
     // 서비스 호출
     const aiContent = await letterService.generateLetterContent(category, tone, draft_content);
 
-    // 성공 응답 규격 적용
+    // 성공 응답
     res.status(200).json({
       success: true,
       data: { ai_content: aiContent },
