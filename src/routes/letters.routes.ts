@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from 'express';
-import * as letterService from '../services/gemini.service.js';
+import * as letterService from '../services/ai.service.js';
 
 const router: Router = Router();
 
@@ -88,7 +88,7 @@ router.post('/ai/generate', async (req: Request, res: Response) => {
     const { category, tone, draft_content } = req.body;
 
     // 서비스 호출
-    const aiContent = await letterService.generateLetterContent(category, tone, draft_content);
+    const aiContent = await letterService.generateAiContent(category, tone, draft_content);
 
     // 성공 응답
     res.status(200).json({
