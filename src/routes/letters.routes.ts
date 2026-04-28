@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import * as letterService from '../services/ai.service.js';
+import * as createLetter from '../services/letter.service.js';
 
 const router: Router = Router();
 
@@ -104,6 +105,26 @@ router.post('/ai/generate', async (req: Request, res: Response) => {
       data: null,
       meta: null,
       error: error.message || "AI 문구 생성에 실패했습니다."
+    });
+  }
+});
+
+// 편지 최종 및 링크 생성 api
+router.post('/', async (req: Request, res: Response) => {
+  try {
+    const result = await createLetter.createLetter(req.body);
+
+    res.status(201).json({
+      success: true,
+      data: result,
+      meta: null,
+      error: null
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      data: null,
+      error: error.message || "편지 저장 중 오류가 발생했습니다."
     });
   }
 });
