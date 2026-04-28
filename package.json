@@ -16,7 +16,8 @@
   "packageManager": "pnpm@10.33.0",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
-    "@prisma/client": "^7.7.0",
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -25,6 +26,7 @@
     "nanoid": "^5.1.9",
     "passport": "^0.7.0",
     "passport-kakao": "^1.0.1",
+    "pg": "^8.20.0",
     "redis": "^5.12.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
@@ -38,9 +40,10 @@
     "@types/node": "^25.6.0",
     "@types/passport": "^1.0.17",
     "@types/passport-kakao": "^1.0.3",
+    "@types/pg": "^8.20.0",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
-    "prisma": "^7.7.0",
+    "prisma": "^7.8.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"
   }
