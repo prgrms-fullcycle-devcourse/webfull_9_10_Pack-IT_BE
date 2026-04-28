@@ -1,5 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -12,9 +10,11 @@ datasource db {
 // 유저 테이블
 model User {
   id           Int           @id @default(autoincrement())
-  email        String        @unique
-  kakaoUid     String        @unique @map("kakao_uid") // DB에는 kakao_uid로 저장
-  nickname     String
+  nanoId       String        @unique @map("nano_id")
+  userType     String        @default("GUEST") @map("user_type") //회원 등급 (GUEST / MEMBER)
+  email        String?       @unique
+  kakaoUid     String?       @unique @map("kakao_uid")
+  nickname     String?
   createdAt    DateTime      @default(now()) @map("created_at")
   
   sentLetters  Letter[]      @relation("SentLetters")
@@ -30,7 +30,7 @@ model Letter {
   senderName   String        @map("sender_name")
   receiverName String        @map("receiver_name")
   category     String
-  content      String        @db.Text             
+  content      String        @db.Text              
   theme        Int
   publishedAt  DateTime      @default(now()) @map("published_at")
 
