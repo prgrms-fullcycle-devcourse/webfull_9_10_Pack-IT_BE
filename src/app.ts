@@ -8,7 +8,7 @@ import mainRoutes from "./routes/main.routes.js";
 
 dotenv.config();
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 8080;
 
 app.use(cors());
 app.use(express.json());
@@ -17,6 +17,11 @@ app.use(cookieParser());
 app.use("/", mainRoutes);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+app.get("/api-json", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.json(swaggerSpec);
+});
 
 app.get("/", (req: Request, res: Response) => {
   res.send("🚀 Pack-IT 백엔드 서버가 정상적으로 켜져 있습니다!");

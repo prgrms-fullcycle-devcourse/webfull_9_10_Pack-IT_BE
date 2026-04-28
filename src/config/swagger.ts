@@ -20,7 +20,7 @@ const options = {
     ],
   },
   //주석을 읽어올 경로
-  apis: ["./src/routes/*.ts", "./src/controllers/*.ts"],
+  apis: ["./src/routes/*", "./src/controllers/*.ts"],
 };
 
 export const swaggerSpec = swaggerJSDoc(options);
