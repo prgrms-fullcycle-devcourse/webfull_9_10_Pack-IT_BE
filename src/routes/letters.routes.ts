@@ -83,6 +83,106 @@ const router: Router = Router();
  *                   example: "AI 문구 생성에 실패했습니다."
  */
 
+/**
+ * @openapi
+ * /letters:
+ *   post:
+ *     summary: 최종 편지 생성 및 저장
+ *     description: AI로 다듬어진 문구와 선택한 테마를 포함하여 최종 편지를 DB에 저장하고, 공유 가능한 고유 ID를 반환합니다.
+ *     tags:
+ *       - Letters
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - sender_name
+ *               - receiver_name
+ *               - category
+ *               - content
+ *               - theme
+ *             properties:
+ *               sender_name:
+ *                 type: string
+ *                 description: "보내는 사람 이름"
+ *                 example: "정화"
+ *               receiver_name:
+ *                 type: string
+ *                 description: "받는 사람 이름"
+ *                 example: "민수"
+ *               category:
+ *                 type: string
+ *                 description: "편지 카테고리"
+ *                 example: "생일"
+ *               content:
+ *                 type: string
+ *                 description: "최종 편지 내용 (AI가 다듬어준 문구 포함)"
+ *                 example: "민수야, 생일 정말 축하해! 맛있는 거 많이 먹어!."
+ *               theme:
+ *                 type: number
+ *                 description: "선택한 편지 테마 번호 (1~5)"
+ *                 example: 1
+ *               sender_id:
+ *                 type: integer
+ *                 nullable: true
+ *                 description: "로그인한 사용자의 경우 유저 고유 ID (비회원은 null)"
+ *                 example: 123
+ *     responses:
+ *       201:
+ *         description: 편지 저장 및 링크 생성 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     letter_id:
+ *                       type: string
+ *                       description: "공유 링크로 사용될 고유 nanoid"
+ *                       example: "V1StG_K9_D9W9SpgS8"
+ *                     published_at:
+ *                       type: string
+ *                       format: date-time
+ *                       description: "편지 생성 일시"
+ *                       example: "2026-04-28T14:41:59Z"
+ *                 meta:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 error:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *       500:
+ *         description: 서버 에러 (DB 저장 실패 등)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 meta:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 error:
+ *                   type: string
+ *                   example: "편지 저장에 실패했습니다."
+ */
+
 // ai 문구 변환 api
 router.post('/ai/generate', async (req: Request, res: Response) => {
   try {
@@ -124,6 +224,7 @@ router.post('/', async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       data: null,
+      meta: null,
       error: error.message || "편지 저장 중 오류가 발생했습니다."
     });
   }
