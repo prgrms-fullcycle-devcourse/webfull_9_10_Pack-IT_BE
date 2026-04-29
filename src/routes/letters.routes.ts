@@ -1,9 +1,3 @@
-import { Router, type Request, type Response } from 'express';
-import * as letterService from '../services/ai.service.js';
-import * as createLetter from '../services/letter.service.js';
-
-const router: Router = Router();
-
 /**
  * @openapi
  * /letters/ai/generate:
@@ -183,6 +177,121 @@ const router: Router = Router();
  *                   example: "편지 저장에 실패했습니다."
  */
 
+/**
+ * @openapi
+ * /letters/{letter_id}:
+ *   get:
+ *     summary: 편지 상세 조회 (수신자용)
+ *     description: 수신자가 전달받은 링크(letter_id)를 통해 편지의 상세 내용을 조회합니다.
+ *     tags:
+ *       - Letters
+ *     parameters:
+ *       - in: path
+ *         name: letter_id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: 조회할 편지의 고유 ID (nanoid)
+ *         example: "e9BAYFSMDiB7X1-Sg0Ozy"
+ *     responses:
+ *       200:
+ *         description: 편지 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "e9BAYFSMDiB7X1-Sg0Ozy"
+ *                     senderId:
+ *                       type: string
+ *                       nullable: true
+ *                       example: null
+ *                     senderName:
+ *                       type: string
+ *                       example: "정화"
+ *                     receiverName:
+ *                       type: string
+ *                       example: "지수"
+ *                     category:
+ *                       type: string
+ *                       example: "생일"
+ *                     content:
+ *                       type: string
+ *                       example: "지수야, 생일 축하해. 오늘 하루 즐겁게 보내고 맛있는 것도 많이 먹었으면 좋겠다. 좋은 하루 보내!"
+ *                     theme:
+ *                       type: number
+ *                       example: 1
+ *                     publishedAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2026-04-28T13:08:29.405Z"
+ *                 meta:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 error:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *       404:
+ *         description: 해당 편지를 찾을 수 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 meta:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 error:
+ *                   type: string
+ *                   example: "해당 편지를 찾을 수 없습니다."
+*       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 meta:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 error:
+ *                   type: string
+ *                   example: "서버 내부 오류가 발생했습니다."
+ */
+
+
+import { Router, type Request, type Response } from 'express';
+import * as letterService from '../services/ai.service.js';
+import * as createLetter from '../services/letter.service.js';
+
+const router: Router = Router();
+
 // ai 문구 변환 api
 router.post('/ai/generate', async (req: Request, res: Response) => {
   try {
@@ -226,6 +335,35 @@ router.post('/', async (req: Request, res: Response) => {
       data: null,
       meta: null,
       error: error.message || "편지 저장 중 오류가 발생했습니다."
+    });
+  }
+});
+
+// 편지 상세 조회 api (수신자용)
+router.get('/:letter_id', async (req: Request, res: Response) => {
+  try {
+    const letterId = req.params.letter_id as string; // URL 파라미터에서 추출
+
+    if (!letterId) {
+      return res.status(400).json({ success: false, error: "편지 아이디가 필요합니다." });
+    }
+
+    // 서비스 계층 호출
+    const letter = await createLetter.getLetterDetail(letterId);
+
+    res.status(200).json({
+      success: true,
+      data: letter,
+      meta: null,
+      error: null
+    });
+  } catch (error: any) {
+    // 편지가 없거나 DB 에러가 난 경우
+    res.status(error.status || 500).json({
+      success: false,
+      data: null,
+      meta: null,
+      error: error.message || "편지를 불러오는 중 오류가 발생했습니다."
     });
   }
 });

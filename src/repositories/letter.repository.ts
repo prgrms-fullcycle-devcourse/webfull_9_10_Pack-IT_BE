@@ -1,5 +1,6 @@
 import prisma from "../config/db.js";
 
+// 편지 데이터 저장
 export const saveLetter = async (letterData: any) => {
   try {
     return await prisma.letter.create({
@@ -17,4 +18,11 @@ export const saveLetter = async (letterData: any) => {
     console.error("Prisma 저장 에러:", error);
     throw error;
   }
+};
+
+// letter_id로 해당 편지 조회
+export const findLetterById = async (id: string) => {
+  return await prisma.letter.findUnique({
+    where: { id }
+  });
 };
