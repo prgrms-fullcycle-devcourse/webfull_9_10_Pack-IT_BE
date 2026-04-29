@@ -81,8 +81,8 @@
  * @openapi
  * /letters:
  *   post:
- *     summary: 최종 편지 생성 및 저장
- *     description: AI로 다듬어진 문구와 선택한 테마를 포함하여 최종 편지를 DB에 저장하고, 공유 가능한 고유 ID를 반환합니다.
+ *     summary: 편지 최종 저장 및 링크 생성 api
+ *     description: AI로 다듬어진 문구와 선택한 테마를 포함하여 최종 편지 데이터를 DB에 저장하고, 링크 생성할 때 필요한 편지 고유 ID를 반환합니다.
  *     tags:
  *       - Letters
  *     requestBody:
@@ -97,7 +97,13 @@
  *               - category
  *               - content
  *               - theme
+ *               - password
  *             properties:
+ *               sender_id:
+ *                 type: integer
+ *                 nullable: true
+ *                 description: "로그인한 사용자의 경우 유저 고유 ID (비회원은 null)"
+ *                 example: 1
  *               sender_name:
  *                 type: string
  *                 description: "보내는 사람 이름"
@@ -118,11 +124,10 @@
  *                 type: number
  *                 description: "선택한 편지 테마 번호 (1~5)"
  *                 example: 1
- *               sender_id:
- *                 type: integer
- *                 nullable: true
- *                 description: "로그인한 사용자의 경우 유저 고유 ID (비회원은 null)"
- *                 example: 123
+ *               password:
+ *                 type: number
+ *                 description: "발신자가 설정한 비밀번호"
+ *                 example: 9999
  *     responses:
  *       201:
  *         description: 편지 저장 및 링크 생성 성공
