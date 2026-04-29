@@ -1,10 +1,10 @@
-import { prisma } from '../config/db.js';
+import prisma from "../config/db.js";
 
 export const saveLetter = async (letterData: any) => {
   try {
     return await prisma.letter.create({
       data: {
-        id: letterData.nano_id,  // Prisma 스키마의 id(PK)에 nanoid 대입
+        id: letterData.nano_id,
         senderId: letterData.sender_id || null,
         senderName: letterData.sender_name,
         receiverName: letterData.receiver_name,
