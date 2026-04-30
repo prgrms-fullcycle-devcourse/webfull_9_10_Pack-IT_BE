@@ -32,3 +32,17 @@ export const createLetter = async (letterData: {
     throw new Error("편지 저장에 실패했습니다.");
   }
 };
+
+// 편지 상세 조회 데이터
+export const getLetterDetail = async (letterId: string) => {
+  const letter = await letterRepository.findLetterById(letterId);
+
+  // 데이터가 없을 때 예외 처리
+  if (!letter) {
+    const error: any = new Error("해당 편지를 찾을 수 없습니다.");
+    error.status = 404;
+    throw error;
+  }
+
+  return letter;
+};

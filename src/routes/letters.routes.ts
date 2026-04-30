@@ -1,9 +1,3 @@
-import { Router, type Request, type Response } from 'express';
-import * as letterService from '../services/ai.service.js';
-import * as createLetter from '../services/letter.service.js';
-
-const router: Router = Router();
-
 /**
  * @openapi
  * /letters/ai/generate:
@@ -87,8 +81,8 @@ const router: Router = Router();
  * @openapi
  * /letters:
  *   post:
- *     summary: 최종 편지 생성 및 저장
- *     description: AI로 다듬어진 문구와 선택한 테마를 포함하여 최종 편지를 DB에 저장하고, 공유 가능한 고유 ID를 반환합니다.
+ *     summary: 편지 최종 저장 및 링크 생성 api
+ *     description: AI로 다듬어진 문구와 선택한 테마를 포함하여 최종 편지 데이터를 DB에 저장하고, 링크 생성할 때 필요한 편지 고유 ID를 반환합니다.
  *     tags:
  *       - Letters
  *     requestBody:
@@ -103,7 +97,13 @@ const router: Router = Router();
  *               - category
  *               - content
  *               - theme
+ *               - password
  *             properties:
+ *               sender_id:
+ *                 type: integer
+ *                 nullable: true
+ *                 description: "로그인한 사용자의 경우 유저 고유 ID (비회원은 null)"
+ *                 example: 1
  *               sender_name:
  *                 type: string
  *                 description: "보내는 사람 이름"
@@ -124,11 +124,10 @@ const router: Router = Router();
  *                 type: number
  *                 description: "선택한 편지 테마 번호 (1~5)"
  *                 example: 1
- *               sender_id:
- *                 type: integer
- *                 nullable: true
- *                 description: "로그인한 사용자의 경우 유저 고유 ID (비회원은 null)"
- *                 example: 123
+ *               password:
+ *                 type: number
+ *                 description: "발신자가 설정한 비밀번호"
+ *                 example: 9999
  *     responses:
  *       201:
  *         description: 편지 저장 및 링크 생성 성공
@@ -183,6 +182,121 @@ const router: Router = Router();
  *                   example: "편지 저장에 실패했습니다."
  */
 
+/**
+ * @openapi
+ * /letters/{letter_id}:
+ *   get:
+ *     summary: 편지 상세 조회 (수신자용)
+ *     description: 수신자가 전달받은 링크(letter_id)를 통해 편지의 상세 내용을 조회합니다.
+ *     tags:
+ *       - Letters
+ *     parameters:
+ *       - in: path
+ *         name: letter_id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: 조회할 편지의 고유 ID (nanoid)
+ *         example: "e9BAYFSMDiB7X1-Sg0Ozy"
+ *     responses:
+ *       200:
+ *         description: 편지 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "e9BAYFSMDiB7X1-Sg0Ozy"
+ *                     senderId:
+ *                       type: string
+ *                       nullable: true
+ *                       example: null
+ *                     senderName:
+ *                       type: string
+ *                       example: "정화"
+ *                     receiverName:
+ *                       type: string
+ *                       example: "지수"
+ *                     category:
+ *                       type: string
+ *                       example: "생일"
+ *                     content:
+ *                       type: string
+ *                       example: "지수야, 생일 축하해. 오늘 하루 즐겁게 보내고 맛있는 것도 많이 먹었으면 좋겠다. 좋은 하루 보내!"
+ *                     theme:
+ *                       type: number
+ *                       example: 1
+ *                     publishedAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2026-04-28T13:08:29.405Z"
+ *                 meta:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 error:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *       404:
+ *         description: 해당 편지를 찾을 수 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 meta:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 error:
+ *                   type: string
+ *                   example: "해당 편지를 찾을 수 없습니다."
+*       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 meta:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 error:
+ *                   type: string
+ *                   example: "서버 내부 오류가 발생했습니다."
+ */
+
+
+import { Router, type Request, type Response } from 'express';
+import * as letterService from '../services/ai.service.js';
+import * as createLetter from '../services/letter.service.js';
+
+const router: Router = Router();
+
 // ai 문구 변환 api
 router.post('/ai/generate', async (req: Request, res: Response) => {
   try {
@@ -226,6 +340,35 @@ router.post('/', async (req: Request, res: Response) => {
       data: null,
       meta: null,
       error: error.message || "편지 저장 중 오류가 발생했습니다."
+    });
+  }
+});
+
+// 편지 상세 조회 api (수신자용)
+router.get('/:letter_id', async (req: Request, res: Response) => {
+  try {
+    const letterId = req.params.letter_id as string; // URL 파라미터에서 추출
+
+    if (!letterId) {
+      return res.status(400).json({ success: false, error: "편지 아이디가 필요합니다." });
+    }
+
+    // 서비스 계층 호출
+    const letter = await createLetter.getLetterDetail(letterId);
+
+    res.status(200).json({
+      success: true,
+      data: letter,
+      meta: null,
+      error: null
+    });
+  } catch (error: any) {
+    // 편지가 없거나 DB 에러가 난 경우
+    res.status(error.status || 500).json({
+      success: false,
+      data: null,
+      meta: null,
+      error: error.message || "편지를 불러오는 중 오류가 발생했습니다."
     });
   }
 });
