@@ -1,4 +1,4 @@
-import express, { type Request, type Response } from "express";
+import express, { type Request, type Response type NextFunction } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
@@ -25,6 +25,26 @@ app.get("/api-json", (req, res) => {
 
 app.get("/", (req: Request, res: Response) => {
   res.send("🚀 Pack-IT 백엔드 서버가 정상적으로 켜져 있습니다!");
+});
+
+// error handler
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  const status = err.statusCode || 500;
+  
+  const message = err.message || "서버 내부 오류가 발생했습니다.";
+
+  console.log("-------------------------------");
+  console.log(`[${req.method}] ${req.url}`);
+  console.log("상태코드:", status);
+  console.log("메시지:", message);
+  console.log("-------------------------------");
+
+  res.status(status).json({
+    success: false,
+    data: null, 
+    meta: null, 
+    error: message,
+  });
 });
 
 app.listen(PORT, () => {
