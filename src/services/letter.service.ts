@@ -46,3 +46,16 @@ export const getLetterDetail = async (letterId: string) => {
 
   return letter;
 };
+
+export const getLettersByUserId = async (userId: number, cursor?: number | null) => {
+  const lastId = (cursor && cursor > 0) ? cursor : null;
+  const fetchLimit = 11;
+
+  const rows = await letterRepository.findLettersById(userId, lastId, fetchLimit);
+
+  const hasNextPage = rows.length > 10;
+  const data = hasNextPage ? rows.slice(0, 10) : rows;
+  const nextCursor = hasNextPage ? data[data.length - 1].id : null;
+  const letters = await letterRepository.findLettersById(userId);
+  return letters;
+}
