@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid';
 import * as letterRepository from '../repositories/letter.repository.js';
 import { AppError, ERROR } from '../utils/constants/response.js';
+import bcrypt from 'bcrypt';
 
 /**
  * 최종 편지 생성 및 DB 저장 서비스
@@ -49,4 +50,31 @@ export const getLetterDetail = async (letterId: string) => {
   }
 
   return letter;
+};
+
+// 편지 열람 비밀번호 확인 api
+export const verifyLetterPassword = async (letterId: string, inputPassword: string) => {
+  // DB에서 해당 편지 조회
+  const letter = await letterRepository.findLetterById(letterId);
+
+  // 편지가 존재하지 않는 경우 (404)
+  if (!letter) {
+    throw new AppError(ERROR.NOT_FOUND, "해당 편지를 찾을 수 없습니다.");
+  }
+
+  // 비밀번호가 설정되지 않은 편지인 경우
+  if (!letter.password) {
+    return { isCorrect: true }; // 비밀번호가 없으면 바로 통과
+  }
+
+  // bcrypt를 이용해 비밀번호 비교
+  const isMatch = await bcrypt.compare(inputPassword.toString(), letter.password); 
+
+  // 비밀번호가 틀린 경우 (401)
+  if (!isMatch) {
+    throw new AppError(ERROR.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.");
+  }
+
+  // 일치하면 성공 반환
+  return { isCorrect: true };
 };

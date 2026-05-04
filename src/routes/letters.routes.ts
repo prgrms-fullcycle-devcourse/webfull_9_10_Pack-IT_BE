@@ -87,9 +87,11 @@
  *                 data:
  *                   type: object
  *                   nullable: true
+ *                   example: null
  *                 meta:
  *                   type: object
  *                   nullable: true
+ *                   example: null
  *                 error:
  *                   type: string
  *                   example: "AI 문구 생성에 실패했습니다."
@@ -333,6 +335,7 @@
  * @openapi
  * /api/letters/{letter_id}/verify:
  *   post:
+ *     operationId: verifyLetterPassword
  *     summary: 편지 열람 비밀번호 확인
  *     description: 수신자가 입력한 비밀번호가 발신자가 설정한 비밀번호와 일치하는지 확인합니다.
  *     tags:
@@ -372,6 +375,14 @@
  *                   type: object
  *                   nullable: true
  *                   example: null
+ *                 meta:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 error:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
  *       401:
  *         description: 비밀번호 불일치
  *         content:
@@ -382,11 +393,38 @@
  *                 success:
  *                   type: boolean
  *                   example: false
+ *                 data:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 meta:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
  *                 error:
  *                   type: string
  *                   example: "비밀번호가 일치하지 않습니다."
  *       404:
  *         description: 존재하지 않는 편지
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 meta:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 error:
+ *                   type: string
+ *                   example: "해당 편지를 찾을 수 없습니다."
  */
 
 
@@ -394,6 +432,7 @@ import { Router, type Request, type Response } from 'express';
 import * as letterService from '../services/ai.service.js';
 import * as createLetter from '../services/letter.service.js';
 import { catchAsync, SUCCESS } from "../utils/constants/response.js";
+import { verifyLetterPassword} from '../services/letter.service.js';
 
 const router: Router = Router();
 
@@ -426,6 +465,18 @@ router.get('/:letter_id', catchAsync(async (req: Request, res: Response) => {
 
   // 공통 성공 응답 함수 사용
   res.status(200).json(SUCCESS(letter));
+}));
+
+// 편지 열람 비밀번호 확인 api
+router.post('/:letter_id/verify', catchAsync(async (req: Request, res: Response) => {
+  const { letter_id } = req.params;
+  const { password } = req.body;
+
+  // 서비스 호출
+  await createLetter.verifyLetterPassword(letter_id as string, password);
+
+  // 일치할 경우 성공 응답
+  res.status(200).json(SUCCESS(null));
 }));
 
 export default router;
