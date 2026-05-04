@@ -30,6 +30,11 @@ export const createLetter = async (letterData: {
     };
   } catch (error) {
     console.error("Letter Service 저장 에러:", error);
+
+    // 이미 정의된 AppError라면 그대로 던지고, 
+    // 그 외의 예기치 못한 에러는 INTERNAL_SERVER_ERROR 처리
+    if (error instanceof AppError) throw error;
+
     throw new AppError(ERROR.INTERNAL_SERVER_ERROR, "편지 저장에 실패했습니다.");
   }
 };
