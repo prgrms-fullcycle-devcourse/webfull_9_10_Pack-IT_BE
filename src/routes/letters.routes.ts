@@ -267,7 +267,7 @@
  *                 error:
  *                   type: string
  *                   example: "해당 편지를 찾을 수 없습니다."
-*       500:
+ *       500:
  *         description: 서버 오류
  *         content:
  *           application/json:
@@ -290,27 +290,30 @@
  *                   example: "서버 내부 오류가 발생했습니다."
  */
 
-
-import { Router, type Request, type Response } from 'express';
-import * as letterService from '../services/ai.service.js';
-import * as createLetter from '../services/letter.service.js';
+import { Router, type Request, type Response } from "express";
+import * as letterService from "../services/ai.service.js";
+import * as createLetter from "../services/letter.service.js";
 
 const router: Router = Router();
 
 // ai 문구 변환 api
-router.post('/ai/generate', async (req: Request, res: Response) => {
+router.post("/ai/generate", async (req: Request, res: Response) => {
   try {
     const { category, tone, draft_content } = req.body;
 
     // 서비스 호출
-    const aiContent = await letterService.generateLetterContent(category, tone, draft_content);
+    const aiContent = await letterService.generateAiContent(
+      category,
+      tone,
+      draft_content,
+    );
 
     // 성공 응답
     res.status(200).json({
       success: true,
       data: { ai_content: aiContent },
       meta: null,
-      error: null
+      error: null,
     });
   } catch (error: any) {
     console.error("AI 생성 중 에러 발생:", error);
@@ -318,13 +321,13 @@ router.post('/ai/generate', async (req: Request, res: Response) => {
       success: false,
       data: null,
       meta: null,
-      error: error.message || "AI 문구 생성에 실패했습니다."
+      error: error.message || "AI 문구 생성에 실패했습니다.",
     });
   }
 });
 
 // 편지 최종 및 링크 생성 api
-router.post('/', async (req: Request, res: Response) => {
+router.post("/", async (req: Request, res: Response) => {
   try {
     const result = await createLetter.createLetter(req.body);
 
@@ -332,25 +335,27 @@ router.post('/', async (req: Request, res: Response) => {
       success: true,
       data: result,
       meta: null,
-      error: null
+      error: null,
     });
   } catch (error: any) {
     res.status(500).json({
       success: false,
       data: null,
       meta: null,
-      error: error.message || "편지 저장 중 오류가 발생했습니다."
+      error: error.message || "편지 저장 중 오류가 발생했습니다.",
     });
   }
 });
 
 // 편지 상세 조회 api (수신자용)
-router.get('/:letter_id', async (req: Request, res: Response) => {
+router.get("/:letter_id", async (req: Request, res: Response) => {
   try {
     const letterId = req.params.letter_id as string; // URL 파라미터에서 추출
 
     if (!letterId) {
-      return res.status(400).json({ success: false, error: "편지 아이디가 필요합니다." });
+      return res
+        .status(400)
+        .json({ success: false, error: "편지 아이디가 필요합니다." });
     }
 
     // 서비스 계층 호출
@@ -360,7 +365,7 @@ router.get('/:letter_id', async (req: Request, res: Response) => {
       success: true,
       data: letter,
       meta: null,
-      error: null
+      error: null,
     });
   } catch (error: any) {
     // 편지가 없거나 DB 에러가 난 경우
@@ -368,7 +373,7 @@ router.get('/:letter_id', async (req: Request, res: Response) => {
       success: false,
       data: null,
       meta: null,
-      error: error.message || "편지를 불러오는 중 오류가 발생했습니다."
+      error: error.message || "편지를 불러오는 중 오류가 발생했습니다.",
     });
   }
 });

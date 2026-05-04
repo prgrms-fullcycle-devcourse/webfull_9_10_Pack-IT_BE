@@ -103,7 +103,7 @@ const userRouter: Router = Router();
  */
 userRouter.get("/me", async (req: Request, res: Response) => {
   try {
-    const currentNanoId = req.user!.nanoId;
+    const currentNanoId = req.user!.nano_id;
 
     const userInfo = await prisma.user.findUnique({
       where: { nanoId: currentNanoId },
