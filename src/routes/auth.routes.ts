@@ -8,24 +8,24 @@ const authRouter: Router = Router();
 /**
  * @swagger
  * /api/auth/kakao/callback:
- * get:
- * summary: 카카오 연동 로그인 처리
- * description: 프론트엔드가 전달한 카카오 인가 코드를 이용해 유저를 MEMBER로 승격시키고 새로운 JWT 쿠키를 발급합니다.
- * tags: [Auth]
- * parameters:
- * - in: query
- * name: code
- * required: true
- * schema:
- * type: string
- * description: 카카오 서버에서 넘겨준 인가 코드
- * responses:
- * 302:
- * description: 로그인 성공 (프론트엔드 메인 페이지로 리다이렉트)
- * 400:
- * description: 필수 데이터(인가 코드) 누락 (Zod 에러)
- * 500:
- * description: 서버 내부 오류 또는 카카오 통신 실패
+ *   get:
+ *     summary: 카카오 연동 로그인 처리
+ *     description: 프론트엔드가 전달한 카카오 인가 코드를 이용해 유저를 MEMBER로 승격시키고 새로운 JWT 쿠키를 발급합니다.
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: query
+ *         name: code
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 카카오 서버에서 넘겨준 인가 코드
+ *     responses:
+ *       302:
+ *         description: 로그인 성공 (프론트엔드 메인 페이지로 리다이렉트)
+ *       400:
+ *         description: 필수 데이터(인가 코드) 누락 (Zod 에러)
+ *       500:
+ *         description: 서버 내부 오류 또는 카카오 통신 실패
  */
 authRouter.get(
   "/kakao/callback",
