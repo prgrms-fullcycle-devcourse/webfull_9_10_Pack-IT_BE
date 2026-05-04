@@ -79,7 +79,7 @@ authRouter.get(
   async (req: Request, res: Response) => {
     try {
       const code = req.query.code as string;
-      const currentNanoId = req.user!.nanoId;
+      const currentNanoId = req.user!.nano_id;
 
       const newAccessToken = await authService.linkKakaoAccount(
         currentNanoId,
