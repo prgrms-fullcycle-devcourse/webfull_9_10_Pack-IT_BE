@@ -4,8 +4,8 @@ declare global {
   namespace Express {
     interface Request {
       user?: {
-        nanoId: string;
-        userType: string;
+        nano_id: string;
+        user_type: string;
       };
     }
   }
