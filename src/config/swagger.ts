@@ -20,7 +20,12 @@ const options = {
     ],
   },
   //주석을 읽어올 경로
-  apis: ["./src/routes/*", "./src/controllers/*.ts"],
+  apis: [
+    "./src/routes/*.ts", // 로컬 개발 환경용 라우터
+    "./src/controllers/*.ts", // 로컬 개발 환경용 컨트롤러
+    "./dist/routes/*.js", // EC2 배포 환경용 라우터 (빌드 폴더가 dist인 경우)
+    "./dist/controllers/*.js", // EC2 배포 환경용 컨트롤러
+  ],
 };
 
 export const swaggerSpec = swaggerJSDoc(options);
