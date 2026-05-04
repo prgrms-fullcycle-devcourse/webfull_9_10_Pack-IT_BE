@@ -33,6 +33,7 @@ model Letter {
   content      String        @db.Text              
   theme        Int
   publishedAt  DateTime      @default(now()) @map("published_at")
+  password     String?
 
   sender       User?         @relation("SentLetters", fields: [senderId], references: [id])
   savedRecords SavedLetter[] @relation("LetterSavedRecords")

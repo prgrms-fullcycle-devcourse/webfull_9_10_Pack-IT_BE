@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import prisma from "../config/db.js";
+import { catchAsync } from "../utils/constants/response.js";
 
 const userRouter: Router = Router();
 
@@ -126,5 +127,24 @@ userRouter.get("/me", async (req: Request, res: Response) => {
       .json({ success: false, message: "서버 내부 오류가 발생했습니다." });
   }
 });
+
+// GET: 보낸 편지 목록 조회
+userRouter.get(
+  "/me/letters/sent",
+  catchAsync(async (req: Request, res: Response) => {
+    const user = req.user as any;
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        uuid: user?.uuid,
+        email: user?.email,
+        name: user?.name,
+        profileImage: user?.profileImage,
+      },
+      error: null,
+    });
+  }),
+);
 
 export default userRouter;
