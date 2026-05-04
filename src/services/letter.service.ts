@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid';
 import * as letterRepository from '../repositories/letter.repository.js';
+import { AppError, ERROR } from '../utils/constants/response.js';
 
 /**
  * 최종 편지 생성 및 DB 저장 서비스
@@ -29,7 +30,7 @@ export const createLetter = async (letterData: {
     };
   } catch (error) {
     console.error("Letter Service 저장 에러:", error);
-    throw new Error("편지 저장에 실패했습니다.");
+    throw new AppError(ERROR.INTERNAL_SERVER_ERROR, "편지 저장에 실패했습니다.");
   }
 };
 
@@ -39,9 +40,7 @@ export const getLetterDetail = async (letterId: string) => {
 
   // 데이터가 없을 때 예외 처리
   if (!letter) {
-    const error: any = new Error("해당 편지를 찾을 수 없습니다.");
-    error.status = 404;
-    throw error;
+    throw new AppError(ERROR.NOT_FOUND, "해당 편지를 찾을 수 없습니다.");
   }
 
   return letter;

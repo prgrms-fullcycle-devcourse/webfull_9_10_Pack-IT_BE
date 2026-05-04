@@ -290,9 +290,71 @@
  *                   example: "서버 내부 오류가 발생했습니다."
  */
 
-import { Router, type Request, type Response } from "express";
-import * as letterService from "../services/ai.service.js";
-import * as createLetter from "../services/letter.service.js";
+/**
+ * @openapi
+ * /letters/{letter_id}/verify:
+ *   post:
+ *     summary: 편지 열람 비밀번호 확인
+ *     description: 수신자가 입력한 비밀번호가 발신자가 설정한 비밀번호와 일치하는지 확인합니다.
+ *     tags:
+ *       - Letters
+ *     parameters:
+ *       - in: path
+ *         name: letter_id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: 확인하고자 하는 편지의 고유 ID (nanoid)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 description: 수신자가 입력한 비밀번호 (숫자로 구성된 문자열)
+ *                 example: "1234"
+ *     responses:
+ *       200:
+ *         description: 비밀번호 일치 (확인 성공)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *       401:
+ *         description: 비밀번호 불일치
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "비밀번호가 일치하지 않습니다."
+ *       404:
+ *         description: 존재하지 않는 편지
+ */
+
+
+import { Router, type Request, type Response } from 'express';
+import * as letterService from '../services/ai.service.js';
+import * as createLetter from '../services/letter.service.js';
+import { catchAsync, SUCCESS } from "../utils/constants/response.js";
 
 const router: Router = Router();
 
@@ -348,34 +410,12 @@ router.post("/", async (req: Request, res: Response) => {
 });
 
 // 편지 상세 조회 api (수신자용)
-router.get("/:letter_id", async (req: Request, res: Response) => {
-  try {
-    const letterId = req.params.letter_id as string; // URL 파라미터에서 추출
+router.get('/:letter_id', catchAsync(async (req: Request, res: Response) => {
+  const { letter_id } = req.params;
+  const letter = await createLetter.getLetterDetail(letter_id as string);
 
-    if (!letterId) {
-      return res
-        .status(400)
-        .json({ success: false, error: "편지 아이디가 필요합니다." });
-    }
-
-    // 서비스 계층 호출
-    const letter = await createLetter.getLetterDetail(letterId);
-
-    res.status(200).json({
-      success: true,
-      data: letter,
-      meta: null,
-      error: null,
-    });
-  } catch (error: any) {
-    // 편지가 없거나 DB 에러가 난 경우
-    res.status(error.status || 500).json({
-      success: false,
-      data: null,
-      meta: null,
-      error: error.message || "편지를 불러오는 중 오류가 발생했습니다.",
-    });
-  }
-});
+  // 공통 성공 응답 함수 사용
+  res.status(200).json(SUCCESS(letter));
+}));
 
 export default router;
