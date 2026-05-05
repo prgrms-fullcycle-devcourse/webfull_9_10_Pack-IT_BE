@@ -1,6 +1,6 @@
 /**
  * @openapi
- * /letters/ai/generate:
+ * /api/letters/ai/generate:
  *   post:
  *     summary: AI 편지 문구 생성
  *     description: 사용자가 입력한 초안을 선택한 카테고리와 톤에 맞춰 AI가 다듬어줍니다.
@@ -53,7 +53,27 @@
  *                 error:
  *                   type: object
  *                   nullable: true
+ *       400:
+ *         description: 잘못된 요청 (필수 값 누락 등)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: object
+ *                   nullable: true
  *                   example: null
+ *                 meta:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 error:
+ *                   type: string
+ *                   example: "잘못된 요청입니다"
  *       500:
  *         description: 서버 에러 (AI 생성 실패)
  *         content:
@@ -79,7 +99,7 @@
 
 /**
  * @openapi
- * /letters:
+ * /api/letters:
  *   post:
  *     summary: 편지 최종 저장 및 링크 생성 api
  *     description: AI로 다듬어진 문구와 선택한 테마를 포함하여 최종 편지 데이터를 DB에 저장하고, 링크 생성할 때 필요한 편지 고유 ID를 반환합니다.
@@ -159,6 +179,27 @@
  *                   type: object
  *                   nullable: true
  *                   example: null
+ *       400:
+ *         description: 잘못된 요청 (필수 데이터 누락 등)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 meta:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 error:
+ *                   type: string
+ *                   example: "잘못된 요청입니다"
  *       500:
  *         description: 서버 에러 (DB 저장 실패 등)
  *         content:
@@ -184,7 +225,7 @@
 
 /**
  * @openapi
- * /letters/{letter_id}:
+ * /api/letters/{letter_id}:
  *   get:
  *     summary: 편지 상세 조회 (수신자용)
  *     description: 수신자가 전달받은 링크(letter_id)를 통해 편지의 상세 내용을 조회합니다.
@@ -290,15 +331,113 @@
  *                   example: "서버 내부 오류가 발생했습니다."
  */
 
-import { Router, type Request, type Response } from "express";
-import * as letterService from "../services/ai.service.js";
-import * as createLetter from "../services/letter.service.js";
+/**
+ * @openapi
+ * /api/letters/{letter_id}/verify:
+ *   post:
+ *     operationId: verifyLetterPassword
+ *     summary: 편지 열람 비밀번호 확인
+ *     description: 수신자가 입력한 비밀번호가 발신자가 설정한 비밀번호와 일치하는지 확인합니다.
+ *     tags:
+ *       - Letters
+ *     parameters:
+ *       - in: path
+ *         name: letter_id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: 확인하고자 하는 편지의 고유 ID (nanoid)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 description: 수신자가 입력한 비밀번호 (숫자로 구성된 문자열)
+ *                 example: "1234"
+ *     responses:
+ *       200:
+ *         description: 비밀번호 일치 (확인 성공)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 meta:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 error:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *       401:
+ *         description: 비밀번호 불일치
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 meta:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 error:
+ *                   type: string
+ *                   example: "비밀번호가 일치하지 않습니다."
+ *       404:
+ *         description: 존재하지 않는 편지
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 meta:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 error:
+ *                   type: string
+ *                   example: "해당 편지를 찾을 수 없습니다."
+ */
+
+
+import { Router, type Request, type Response } from 'express';
+import * as letterService from '../services/ai.service.js';
+import * as createLetter from '../services/letter.service.js';
+import { catchAsync, SUCCESS } from "../utils/constants/response.js";
+import { verifyLetterPassword} from '../services/letter.service.js';
 
 const router: Router = Router();
 
 // ai 문구 변환 api
-router.post("/ai/generate", async (req: Request, res: Response) => {
-  try {
+router.post('/ai/generate', catchAsync(async (req: Request, res: Response) => {
     const { category, tone, draft_content } = req.body;
 
     // 서비스 호출
@@ -307,75 +446,37 @@ router.post("/ai/generate", async (req: Request, res: Response) => {
       tone,
       draft_content,
     );
-
+    
     // 성공 응답
-    res.status(200).json({
-      success: true,
-      data: { ai_content: aiContent },
-      meta: null,
-      error: null,
-    });
-  } catch (error: any) {
-    console.error("AI 생성 중 에러 발생:", error);
-    res.status(500).json({
-      success: false,
-      data: null,
-      meta: null,
-      error: error.message || "AI 문구 생성에 실패했습니다.",
-    });
-  }
-});
+    res.status(200).json(SUCCESS({ ai_content: aiContent }));
+  }));
 
 // 편지 최종 및 링크 생성 api
-router.post("/", async (req: Request, res: Response) => {
-  try {
+router.post('/', catchAsync(async (req: Request, res: Response) => {
     const result = await createLetter.createLetter(req.body);
 
-    res.status(201).json({
-      success: true,
-      data: result,
-      meta: null,
-      error: null,
-    });
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      data: null,
-      meta: null,
-      error: error.message || "편지 저장 중 오류가 발생했습니다.",
-    });
-  }
-});
+    res.status(201).json(SUCCESS(result));
+}));
 
 // 편지 상세 조회 api (수신자용)
-router.get("/:letter_id", async (req: Request, res: Response) => {
-  try {
-    const letterId = req.params.letter_id as string; // URL 파라미터에서 추출
+router.get('/:letter_id', catchAsync(async (req: Request, res: Response) => {
+  const { letter_id } = req.params;
+  const letter = await createLetter.getLetterDetail(letter_id as string);
 
-    if (!letterId) {
-      return res
-        .status(400)
-        .json({ success: false, error: "편지 아이디가 필요합니다." });
-    }
+  // 공통 성공 응답 함수 사용
+  res.status(200).json(SUCCESS(letter));
+}));
 
-    // 서비스 계층 호출
-    const letter = await createLetter.getLetterDetail(letterId);
+// 편지 열람 비밀번호 확인 api
+router.post('/:letter_id/verify', catchAsync(async (req: Request, res: Response) => {
+  const { letter_id } = req.params;
+  const { password } = req.body;
 
-    res.status(200).json({
-      success: true,
-      data: letter,
-      meta: null,
-      error: null,
-    });
-  } catch (error: any) {
-    // 편지가 없거나 DB 에러가 난 경우
-    res.status(error.status || 500).json({
-      success: false,
-      data: null,
-      meta: null,
-      error: error.message || "편지를 불러오는 중 오류가 발생했습니다.",
-    });
-  }
-});
+  // 서비스 호출
+  await createLetter.verifyLetterPassword(letter_id as string, password);
+
+  // 일치할 경우 성공 응답
+  res.status(200).json(SUCCESS(null));
+}));
 
 export default router;
