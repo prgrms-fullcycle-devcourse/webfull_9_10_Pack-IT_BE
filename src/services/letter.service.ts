@@ -47,15 +47,57 @@ export const getLetterDetail = async (letterId: string) => {
   return letter;
 };
 
-export const getLettersByUserId = async (userId: number, cursor?: number | null) => {
-  const lastId = (cursor && cursor > 0) ? cursor : null;
+// 내가 쓴 편지 목록 조회 (무한 스크롤)
+export const getLettersByUserId = async (userId: string, cursor?: number | null) => {
   const fetchLimit = 11;
 
-  const rows = await letterRepository.findLettersById(userId, lastId, fetchLimit);
+  const queryOptions: any = {
+    take: fetchLimit,
+    where: { senderId: Number(userId) },
+    orderBy: { id: 'desc' },
+  };
+
+  if (cursor && cursor > 0) {
+    queryOptions.cursor = { id: cursor };
+    queryOptions.skip = 1; 
+  }
+  const rows = await letterRepository.findLettersById(queryOptions);
 
   const hasNextPage = rows.length > 10;
   const data = hasNextPage ? rows.slice(0, 10) : rows;
-  const nextCursor = hasNextPage ? data[data.length - 1].id : null;
-  const letters = await letterRepository.findLettersById(userId);
-  return letters;
+  const nextCursor = hasNextPage ? data[data.length - 1]!.id : null;
+  return { letters: data, nextCursor };
+}
+
+// 받은 편지 보관하기 (수신자가 내 계정에 저장)
+export const saveReceivedLetter = async (userId: number, letterId: string) => {
+  const savedLetter = await letterRepository.saveReceivedLetter(userId, letterId);
+  return savedLetter;
+}
+
+  // 받은 편지 목록 조회 (무한 스크롤)
+  export const getReceivedLetters = async (userId: number, cursor?: number | null) => {
+    const fetchLimit = 11;
+
+    const queryOptions: any = {
+      take: fetchLimit,
+      where: { receivedId: Number(userId) },
+      orderBy: { id: 'desc' },
+    };
+
+    if (cursor && cursor > 0) {
+      queryOptions.cursor = { id: cursor };
+      queryOptions.skip = 1; 
+    }
+    const rows = await letterRepository.findReceivedLetters(queryOptions);
+
+    const hasNextPage = rows.length > 10;
+    const data = hasNextPage ? rows.slice(0, 10) : rows;
+    const nextCursor = hasNextPage ? data[data.length - 1]!.id : null;
+    return { letters: data, nextCursor };
+  }
+
+// 보관한 편지 삭제
+export const deleteSavedLetter = async (userId: number, letterId: string) => {
+  await letterRepository.deleteSavedLetter(userId, letterId);
 }

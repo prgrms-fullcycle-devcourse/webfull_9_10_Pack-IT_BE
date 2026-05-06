@@ -1,5 +1,7 @@
 import prisma from "../config/db.js";
 import bcrypt from "bcrypt";
+import { Prisma } from "@prisma/client";
+import { AppError } from "../utils/constants/response.js";
 
 // 편지 데이터 저장
 export const saveLetter = async (letterData: any) => {
@@ -37,50 +39,35 @@ export const findLetterById = async (id: string) => {
   });
 };
 
-// user_id로 편지 조회 무한 스크롤
-export const findLettersById = async (userId: number, cursor: number | null, fetchLimit: number) => {
-  return await prisma.letter.findMany({
-    take: fetchLimit,
-    cursor: cursor ? { id: cursor } : undefined,
-    skip: cursor ? 1 : 0,
-    where: { userId },
-    orderBy: { id: 'desc' },
-  });
+  // user_id로 편지 조회 무한 스크롤
+export const findLettersById = async (queryOptions: any) => {
+  return await prisma.letter.findMany(queryOptions);
 }
 
 // 받은 편지 보관하기 (수신자가 내 계정에 저장)
 export const saveReceivedLetter = async (userId: number, letterId: string) => {
   try {
-    return await prisma.saved_letter.create({
+    return await prisma.savedLetter.create({
       data: {
         userId: userId,
-        letterId: letterId,
+        letterId: letterId,   
       },
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      throw new AppError("이미 보관함에 존재하는 편지입니다.");
+      throw new AppError({status: 404, message: '이미 저장했거나 존재하지 않는 편지입니다.' });
     }
   }
 };
 
 // 보관한 편지 불러오기 무한 스크롤
-export const findReceivedLetters = async (userId: number, cursor: number | null, fetchLimit: number) => {
-  return await prisma.saved_letter.findMany({
-    take: fetchLimit,
-    cursor: cursor ? { id: cursor } : undefined,
-    skip: cursor ? 1 : 0,
-    where: { userId },
-    orderBy: { id: 'desc' },
-    include: {
-      letter: true, // 편지 정보도 함께 조회
-    },
-  });
+export const findReceivedLetters = async (queryOptions: any) => {
+  return await prisma.savedLetter.findMany(queryOptions);
 }
 
 // 보관한 편지 삭제
 export const deleteSavedLetter = async (userId: number, letterId: string) => {
-  await prisma.saved_letter.deleteMany({
+  await prisma.savedLetter.deleteMany({
     where: {
       userId: userId,
       letterId: letterId,
