@@ -282,7 +282,7 @@
  *                     hasPassword:
  *                       type: boolean
  *                       description: "비밀번호 설정 여부"
- *                       example: flase
+ *                       example: false
  *                     publishedAt:
  *                       type: string
  *                       format: date-time
