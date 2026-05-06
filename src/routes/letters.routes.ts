@@ -276,6 +276,10 @@
  *                     theme:
  *                       type: number
  *                       example: 1
+ *                     hasPassword:
+ *                       type: boolean
+ *                       description: "비밀번호 설정 여부"
+ *                       example: flase
  *                     publishedAt:
  *                       type: string
  *                       format: date-time

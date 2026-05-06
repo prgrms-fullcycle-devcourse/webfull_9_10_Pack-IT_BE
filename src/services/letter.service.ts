@@ -49,7 +49,13 @@ export const getLetterDetail = async (letterId: string) => {
     throw new AppError(ERROR.NOT_FOUND, "해당 편지를 찾을 수 없습니다.");
   }
 
-  return letter;
+  // 비밀번호 유무(boolean) 포함하여 반환
+  const { password, ...letterWithoutPassword } = letter;
+
+  return {
+    ...letterWithoutPassword,
+    hasPassword: !!password,
+  };
 };
 
 // 내가 쓴 편지 목록 조회 (무한 스크롤)
@@ -107,6 +113,7 @@ export const saveReceivedLetter = async (userId: number, letterId: string) => {
 export const deleteSavedLetter = async (userId: number, letterId: string) => {
   await letterRepository.deleteSavedLetter(userId, letterId);
 }
+
 // 편지 열람 비밀번호 확인 api
 export const verifyLetterPassword = async (letterId: string, inputPassword: string) => {
   // DB에서 해당 편지 조회
