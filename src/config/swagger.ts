@@ -11,12 +11,12 @@ const options = {
     },
     servers: [
       {
-        url: process.env.DEPLOY_SERVER_URL,
-        description: "배포 서버",
-      },
-      {
         url: process.env.LOCAL_SERVER_URL,
         description: "로컬 테스트 서버",
+      },
+      {
+        url: process.env.DEPLOY_SERVER_URL,
+        description: "배포 서버",
       },
     ],
   },
