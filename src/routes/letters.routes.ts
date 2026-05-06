@@ -2,6 +2,7 @@
  * @openapi
  * /api/letters/ai/generate:
  *   post:
+ *     operationId: generateAiLetterContent
  *     summary: AI 편지 문구 생성
  *     description: 사용자가 입력한 초안을 선택한 카테고리와 톤에 맞춰 AI가 다듬어줍니다.
  *     tags:
@@ -28,7 +29,7 @@
  *               draft_content:
  *                 type: string
  *                 description: "사용자가 작성한 편지 초안"
- *                 example: "00아 생일 축하해 오늘 즐거운 시간 보내고 맛있는 것도 많이 먹고 좋은 하루를 보내길 바래"
+ *                 example: "지수야 생일 축하해 오늘 즐거운 시간 보내고 맛있는 것도 많이 먹고 좋은 하루를 보내길 바래"
  *     responses:
  *       200:
  *         description: AI 문구 생성 성공
@@ -45,7 +46,7 @@
  *                   properties:
  *                     ai_content:
  *                       type: string
- *                       example: "사랑하는 00아, 생일 진심으로 축하해! \n\n일 년 중 가장 소중하고 기쁜 오늘, 네가 누구보다 행복한 시간 보냈으면 좋겠어. 맛있는 음식도 많이 먹고, 네 주변이 온통 기분 좋은 일들로만 가득 채워지는 따뜻한 하루가 되길 바랄게. \n\n항상 밝게 웃는 네 모습이 정말 보기 좋아. 오늘만큼은 세상에서 가장 행복한 주인공이 되어 마음껏 누리는 즐거운 하루 보내길 바라. 다시 한번 생일 축하해!"
+ *                       example: "사랑하는 지수야, 생일 진심으로 축하해! \n\n일 년 중 가장 소중하고 기쁜 오늘, 네가 누구보다 행복한 시간 보냈으면 좋겠어. 맛있는 음식도 많이 먹고, 네 주변이 온통 기분 좋은 일들로만 가득 채워지는 따뜻한 하루가 되길 바랄게. \n\n항상 밝게 웃는 네 모습이 정말 보기 좋아. 오늘만큼은 세상에서 가장 행복한 주인공이 되어 마음껏 누리는 즐거운 하루 보내길 바라. 다시 한번 생일 축하해!"
  *                 meta:
  *                   type: object
  *                   nullable: true
@@ -101,6 +102,7 @@
  * @openapi
  * /api/letters:
  *   post:
+ *     operationId: createLetter
  *     summary: 편지 최종 저장 및 링크 생성 api
  *     description: AI로 다듬어진 문구와 선택한 테마를 포함하여 최종 편지 데이터를 DB에 저장하고, 링크 생성할 때 필요한 편지 고유 ID를 반환합니다.
  *     tags:
@@ -145,9 +147,10 @@
  *                 description: "선택한 편지 테마 번호 (1~5)"
  *                 example: 1
  *               password:
- *                 type: number
+ *                 type: string
+ *                 nullable: true
  *                 description: "발신자가 설정한 비밀번호"
- *                 example: 9999
+ *                 example: "1111"
  *     responses:
  *       201:
  *         description: 편지 저장 및 링크 생성 성공
@@ -227,6 +230,7 @@
  * @openapi
  * /api/letters/{letter_id}:
  *   get:
+ *     operationId: getLetterDetail
  *     summary: 편지 상세 조회 (수신자용)
  *     description: 수신자가 전달받은 링크(letter_id)를 통해 편지의 상세 내용을 조회합니다.
  *     tags:
@@ -275,6 +279,10 @@
  *                     theme:
  *                       type: number
  *                       example: 1
+ *                     hasPassword:
+ *                       type: boolean
+ *                       description: "비밀번호 설정 여부"
+ *                       example: flase
  *                     publishedAt:
  *                       type: string
  *                       format: date-time
