@@ -2,6 +2,7 @@
  * @openapi
  * /api/letters/ai/generate:
  *   post:
+ *     operationId: generateAiLetterContent
  *     summary: AI 편지 문구 생성
  *     description: 사용자가 입력한 초안을 선택한 카테고리와 톤에 맞춰 AI가 다듬어줍니다.
  *     tags:
@@ -101,6 +102,7 @@
  * @openapi
  * /api/letters:
  *   post:
+ *     operationId: createLetter
  *     summary: 편지 최종 저장 및 링크 생성 api
  *     description: AI로 다듬어진 문구와 선택한 테마를 포함하여 최종 편지 데이터를 DB에 저장하고, 링크 생성할 때 필요한 편지 고유 ID를 반환합니다.
  *     tags:
@@ -228,6 +230,7 @@
  * @openapi
  * /api/letters/{letter_id}:
  *   get:
+ *     operationId: getLetterDetail
  *     summary: 편지 상세 조회 (수신자용)
  *     description: 수신자가 전달받은 링크(letter_id)를 통해 편지의 상세 내용을 조회합니다.
  *     tags:
