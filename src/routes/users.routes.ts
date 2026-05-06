@@ -1,8 +1,250 @@
-import { Router, type Request, type Response } from "express";
-import prisma from "../config/db.js";
+import express, { Router, type Request, type Response } from 'express';
 import { catchAsync } from "../utils/constants/response.js";
+import { checkOrIssueToken } from "../utils/middlewares/auth.js";
+import * as letterService from "../services/letter.service.js";
+import prisma from "../config/db.js";
+const router = Router();
 
 const userRouter: Router = Router();
+
+/**
+ * @swagger
+ * tags:
+ *   name: User Letters
+ *   description: 사용자의 편지 관련 API (내가 쓴 편지, 받은 편지 보관 및 조회)
+ * 
+ * /api/users/me/letters/sent:
+ *   get:
+ *     summary: 내가 쓴 편지 목록 조회 (무한 스크롤)
+ *     tags: [User Letters]
+ *     parameters:
+ *       - in: query
+ *         name: cursor
+ *         schema:
+ *           type: integer
+ *         description: 마지막으로 조회된 편지의 ID (다음 페이지 조회를 위한 커서)
+ *     responses:
+ *       200:
+ *         description: 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     nano_id:
+ *                       type: string
+ *                       example: "abc123def"
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     nextCursor:
+ *                       type: integer
+ *                       nullable: true
+ *                       example: 10
+ *                     hasNextPage:
+ *                       type: boolean
+ *                       example: true
+ *                 error:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ * 
+ * /api/users/me/letters/received:
+ *   get:
+ *     summary: 받은 편지 목록 조회 (무한 스크롤)
+ *     tags: [User Letters]
+ *     parameters:
+ *       - in: query
+ *         name: cursor
+ *         schema:
+ *           type: integer
+ *         description: 마지막으로 조회된 편지의 ID
+ *     responses:
+ *       200:
+ *         description: 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                       title:
+ *                         type: string
+ *                         example: "반가워요!"
+ *                       content:
+ *                         type: string
+ *                         example: "받은 편지 내용입니다."
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                         example: "2026-05-06T12:00:00Z"
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     nextCursor:
+ *                       type: integer
+ *                       nullable: true
+ *                       example: null
+ *                     hasNextPage:
+ *                       type: boolean
+ *                       example: false
+ *   post:
+ *     summary: 받은 편지 보관하기
+ *     description: 수신한 편지를 내 계정의 보관함에 저장합니다.
+ *     tags: [User Letters]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               letterId:
+ *                 type: string
+ *                 example: "letter_nano_id_99"
+ *     responses:
+ *       200:
+ *         description: 보관 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 5
+ *                     userId:
+ *                       type: integer
+ *                       example: 1
+ *                     letterId:
+ *                       type: integer
+ *                       example: 101
+ * 
+ * /api/users/me/letters/received/{letterId}:
+ *   delete:
+ *     summary: 보관한 편지 삭제
+ *     tags: [User Letters]
+ *     parameters:
+ *       - in: path
+ *         name: letterId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 삭제할 편지의 ID (nanoId)
+ *     responses:
+ *       200:
+ *         description: 삭제 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 meta:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ */
+
+// 내가 쓴 편지 목록 무한 스크롤
+userRouter.get("/me/letters/sent", checkOrIssueToken, catchAsync(async (req: Request, res: Response) => {
+  const user = req.user;
+  const cursor = req.query.cursor ? Number(req.query.cursor) : null;
+
+  if (!user) {
+    throw new Error("인증되지 않은 사용자입니다."); // 에러 코드 수정
+  }
+
+  const letters = await letterService.getLettersByUserId(user.nano_id, cursor);
+
+  return res.status(200).json({
+    success: true,
+    data: {
+      nano_id: user?.nano_id,
+    },
+    meta: {
+      nextCursor: letters.nextCursor,
+      hasNextPage: letters.nextCursor !== null,
+    },
+    error: null,
+  }); 
+}));
+
+// 받은 편지 보관하기 (수신자가 내 계정에 저장)
+userRouter.post("/me/letters/received", checkOrIssueToken, catchAsync(async (req: any, res: Response) => {
+  const user = req.user;
+  const { letterId } = req.body;
+
+  const letter = await letterService.saveReceivedLetter(user.nano_id, letterId);
+  return res.status(200).json({
+    success: true,
+    data: letter,
+    error: null,
+  });
+}));
+
+// 받은 편지 목록 조회 (무한 스크롤)
+userRouter.get("/me/letters/received", checkOrIssueToken, catchAsync(async (req: any, res: Response) => {
+  const user = req.user;
+  let { cursor } = req.query;
+
+  const letters = await letterService.getReceivedLetters(user.nano_id, cursor);
+
+  return res.status(200).json({
+    success: true,
+    data: letters.letters,
+    meta: {
+      nextCursor: letters.nextCursor,
+      hasNextPage: letters.nextCursor !== null,
+    },
+    error: null,
+  });
+}));
+// 보관한 편지 삭제
+userRouter.delete("/me/letters/received/:letterId", checkOrIssueToken, catchAsync(async (req: any, res: Response) => {
+  const user = req.user;
+  const { letterId } = req.params;
+
+  await letterService.deleteSavedLetter(user.nano_id, letterId);
+
+  return res.status(200).json({
+    success: true,
+    data: null,
+    meta: null,
+    error: null,
+  });
+}));
+
+
+
 
 /**
  * @swagger
@@ -129,22 +371,22 @@ userRouter.get("/me", async (req: Request, res: Response) => {
 });
 
 // GET: 보낸 편지 목록 조회
-userRouter.get(
-  "/me/letters/sent",
-  catchAsync(async (req: Request, res: Response) => {
-    const user = req.user as any;
+// userRouter.get(
+//   "/me/letters/sent",
+//   catchAsync(async (req: Request, res: Response) => {
+//     const user = req.user as any;
 
-    return res.status(200).json({
-      success: true,
-      data: {
-        uuid: user?.uuid,
-        email: user?.email,
-        name: user?.name,
-        profileImage: user?.profileImage,
-      },
-      error: null,
-    });
-  }),
-);
+//     return res.status(200).json({
+//       success: true,
+//       data: {
+//         uuid: user?.uuid,
+//         email: user?.email,
+//         name: user?.name,
+//         profileImage: user?.profileImage,
+//       },
+//       error: null,
+//     });
+//   }),
+// );
 
 export default userRouter;

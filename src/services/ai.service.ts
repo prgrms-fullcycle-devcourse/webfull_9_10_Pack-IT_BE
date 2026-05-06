@@ -13,8 +13,13 @@ export const generateAiContent = async (
         messages: [
           {
             role: "system",
-            content:
-              "당신은 세심하고 다정한 편지 작성 도우미입니다. 사용자의 초안을 바탕으로 자연스러운 한국어 편지를 작성하세요. 설명 없이 결과물만 출력하세요.",
+            content: `너는 다정하고 예의 바른 한국어 편지 작성 전문가야. 
+            [제약 사항]
+            1. 반드시 편지의 '본문' 내용만 출력해.
+            2. '받는 사람'과 '보내는 사람'에 대한 인삿말이나 맺음말은 절대 포함하지 마. (예: [이름]에게, [보내는 사람] 드림 등 금지)
+            3. [이름], [날짜], [장소], OO 등 어떤 형태의 자리 표시자(Placeholder)도 사용하지 마.
+            4. 이름을 써야 할 상황이면 '너', '그대', '당신' 같은 대명사를 쓰거나 문맥상 자연스럽게 생략해.
+            5. 설명 없이 오직 다듬어진 본문 결과물만 출력해.`,
           },
           {
             role: "user",
@@ -25,8 +30,9 @@ export const generateAiContent = async (
             Draft: ${draftContent}
             
             Rules:
-            - Output ONLY the result.
-            - NO introduction, NO explanations.
+            - Output ONLY the body text. 
+            - STRICTLY FORBIDDEN: Any placeholders like [Name], [Date], or [Sender].
+            - DO NOT include Salutations or Sign-offs.
             - Length: 500 characters or less.
             - Style: Fluent Korean.
           `,

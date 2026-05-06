@@ -5,7 +5,57 @@
  * Pack-IT 백엔드 API 문서입니다.
  * OpenAPI spec version: 1.0.0
  */
-export type PostLettersAiGenerateBody = {
+export type GetApiAuthKakaoCallbackParams = {
+  /**
+   * 카카오 서버에서 넘겨준 인가 코드
+   */
+  code: string;
+};
+
+/**
+ * @nullable
+ */
+export type GetApiAuthKakaoCallback400Data = { [key: string]: unknown } | null;
+
+/**
+ * @nullable
+ */
+export type GetApiAuthKakaoCallback400Meta = { [key: string]: unknown } | null;
+
+export type GetApiAuthKakaoCallback400ErrorItem = {
+  message?: string;
+};
+
+export type GetApiAuthKakaoCallback400 = {
+  success?: boolean;
+  /** @nullable */
+  data?: GetApiAuthKakaoCallback400Data;
+  /** @nullable */
+  meta?: GetApiAuthKakaoCallback400Meta;
+  /** Zod 유효성 검사 에러 목록 */
+  error?: GetApiAuthKakaoCallback400ErrorItem[];
+};
+
+/**
+ * @nullable
+ */
+export type GetApiAuthKakaoCallback500Data = { [key: string]: unknown } | null;
+
+/**
+ * @nullable
+ */
+export type GetApiAuthKakaoCallback500Meta = { [key: string]: unknown } | null;
+
+export type GetApiAuthKakaoCallback500 = {
+  success?: boolean;
+  /** @nullable */
+  data?: GetApiAuthKakaoCallback500Data;
+  /** @nullable */
+  meta?: GetApiAuthKakaoCallback500Meta;
+  error?: string;
+};
+
+export type PostApiLettersAiGenerateBody = {
   /** 편지 카테고리 (예: 생일, 축하, 감사 등) */
   category: string;
   /** 다듬을 톤 (예: 다정하게, 격식있게, 감성적인, 담백하게) */
@@ -14,44 +64,360 @@ export type PostLettersAiGenerateBody = {
   draft_content: string;
 };
 
-export type PostLettersAiGenerate200Data = {
+export type PostApiLettersAiGenerate200Data = {
   ai_content?: string;
 };
 
 /**
  * @nullable
  */
-export type PostLettersAiGenerate200Meta = { [key: string]: unknown } | null;
+export type PostApiLettersAiGenerate200Meta = { [key: string]: unknown } | null;
 
 /**
  * @nullable
  */
-export type PostLettersAiGenerate200Error = { [key: string]: unknown } | null;
+export type PostApiLettersAiGenerate200Error = {
+  [key: string]: unknown;
+} | null;
 
-export type PostLettersAiGenerate200 = {
+export type PostApiLettersAiGenerate200 = {
   success?: boolean;
-  data?: PostLettersAiGenerate200Data;
+  data?: PostApiLettersAiGenerate200Data;
   /** @nullable */
-  meta?: PostLettersAiGenerate200Meta;
+  meta?: PostApiLettersAiGenerate200Meta;
   /** @nullable */
-  error?: PostLettersAiGenerate200Error;
+  error?: PostApiLettersAiGenerate200Error;
 };
 
 /**
  * @nullable
  */
-export type PostLettersAiGenerate500Data = { [key: string]: unknown } | null;
+export type PostApiLettersAiGenerate400Data = { [key: string]: unknown } | null;
 
 /**
  * @nullable
  */
-export type PostLettersAiGenerate500Meta = { [key: string]: unknown } | null;
+export type PostApiLettersAiGenerate400Meta = { [key: string]: unknown } | null;
 
-export type PostLettersAiGenerate500 = {
+export type PostApiLettersAiGenerate400 = {
   success?: boolean;
   /** @nullable */
-  data?: PostLettersAiGenerate500Data;
+  data?: PostApiLettersAiGenerate400Data;
   /** @nullable */
-  meta?: PostLettersAiGenerate500Meta;
+  meta?: PostApiLettersAiGenerate400Meta;
+  error?: string;
+};
+
+/**
+ * @nullable
+ */
+export type PostApiLettersAiGenerate500Data = { [key: string]: unknown } | null;
+
+/**
+ * @nullable
+ */
+export type PostApiLettersAiGenerate500Meta = { [key: string]: unknown } | null;
+
+export type PostApiLettersAiGenerate500 = {
+  success?: boolean;
+  /** @nullable */
+  data?: PostApiLettersAiGenerate500Data;
+  /** @nullable */
+  meta?: PostApiLettersAiGenerate500Meta;
+  error?: string;
+};
+
+export type PostApiLettersBody = {
+  /**
+   * 로그인한 사용자의 경우 유저 고유 ID (비회원은 null)
+   * @nullable
+   */
+  sender_id?: number | null;
+  /** 보내는 사람 이름 */
+  sender_name: string;
+  /** 받는 사람 이름 */
+  receiver_name: string;
+  /** 편지 카테고리 */
+  category: string;
+  /** 최종 편지 내용 (AI가 다듬어준 문구 포함) */
+  content: string;
+  /** 선택한 편지 테마 번호 (1~5) */
+  theme: number;
+  /**
+   * 발신자가 설정한 비밀번호
+   * @nullable
+   */
+  password: string | null;
+};
+
+export type PostApiLetters201Data = {
+  /** 공유 링크로 사용될 고유 nanoid */
+  letter_id?: string;
+  /** 편지 생성 일시 */
+  published_at?: string;
+};
+
+/**
+ * @nullable
+ */
+export type PostApiLetters201Meta = { [key: string]: unknown } | null;
+
+/**
+ * @nullable
+ */
+export type PostApiLetters201Error = { [key: string]: unknown } | null;
+
+export type PostApiLetters201 = {
+  success?: boolean;
+  data?: PostApiLetters201Data;
+  /** @nullable */
+  meta?: PostApiLetters201Meta;
+  /** @nullable */
+  error?: PostApiLetters201Error;
+};
+
+/**
+ * @nullable
+ */
+export type PostApiLetters400Data = { [key: string]: unknown } | null;
+
+/**
+ * @nullable
+ */
+export type PostApiLetters400Meta = { [key: string]: unknown } | null;
+
+export type PostApiLetters400 = {
+  success?: boolean;
+  /** @nullable */
+  data?: PostApiLetters400Data;
+  /** @nullable */
+  meta?: PostApiLetters400Meta;
+  error?: string;
+};
+
+/**
+ * @nullable
+ */
+export type PostApiLetters500Data = { [key: string]: unknown } | null;
+
+/**
+ * @nullable
+ */
+export type PostApiLetters500Meta = { [key: string]: unknown } | null;
+
+export type PostApiLetters500 = {
+  success?: boolean;
+  /** @nullable */
+  data?: PostApiLetters500Data;
+  /** @nullable */
+  meta?: PostApiLetters500Meta;
+  error?: string;
+};
+
+export type GetApiLettersLetterId200Data = {
+  id?: string;
+  /** @nullable */
+  senderId?: string | null;
+  senderName?: string;
+  receiverName?: string;
+  category?: string;
+  content?: string;
+  theme?: number;
+  /** 비밀번호 설정 여부 */
+  hasPassword?: boolean;
+  publishedAt?: string;
+};
+
+/**
+ * @nullable
+ */
+export type GetApiLettersLetterId200Meta = { [key: string]: unknown } | null;
+
+/**
+ * @nullable
+ */
+export type GetApiLettersLetterId200Error = { [key: string]: unknown } | null;
+
+export type GetApiLettersLetterId200 = {
+  success?: boolean;
+  data?: GetApiLettersLetterId200Data;
+  /** @nullable */
+  meta?: GetApiLettersLetterId200Meta;
+  /** @nullable */
+  error?: GetApiLettersLetterId200Error;
+};
+
+/**
+ * @nullable
+ */
+export type GetApiLettersLetterId404Data = { [key: string]: unknown } | null;
+
+/**
+ * @nullable
+ */
+export type GetApiLettersLetterId404Meta = { [key: string]: unknown } | null;
+
+export type GetApiLettersLetterId404 = {
+  success?: boolean;
+  /** @nullable */
+  data?: GetApiLettersLetterId404Data;
+  /** @nullable */
+  meta?: GetApiLettersLetterId404Meta;
+  error?: string;
+};
+
+/**
+ * @nullable
+ */
+export type GetApiLettersLetterId500Data = { [key: string]: unknown } | null;
+
+/**
+ * @nullable
+ */
+export type GetApiLettersLetterId500Meta = { [key: string]: unknown } | null;
+
+export type GetApiLettersLetterId500 = {
+  success?: boolean;
+  /** @nullable */
+  data?: GetApiLettersLetterId500Data;
+  /** @nullable */
+  meta?: GetApiLettersLetterId500Meta;
+  error?: string;
+};
+
+export type VerifyLetterPasswordBody = {
+  /** 수신자가 입력한 비밀번호 (숫자로 구성된 문자열) */
+  password: string;
+};
+
+/**
+ * @nullable
+ */
+export type VerifyLetterPassword200Data = { [key: string]: unknown } | null;
+
+/**
+ * @nullable
+ */
+export type VerifyLetterPassword200Meta = { [key: string]: unknown } | null;
+
+/**
+ * @nullable
+ */
+export type VerifyLetterPassword200Error = { [key: string]: unknown } | null;
+
+export type VerifyLetterPassword200 = {
+  success?: boolean;
+  /** @nullable */
+  data?: VerifyLetterPassword200Data;
+  /** @nullable */
+  meta?: VerifyLetterPassword200Meta;
+  /** @nullable */
+  error?: VerifyLetterPassword200Error;
+};
+
+/**
+ * @nullable
+ */
+export type VerifyLetterPassword401Data = { [key: string]: unknown } | null;
+
+/**
+ * @nullable
+ */
+export type VerifyLetterPassword401Meta = { [key: string]: unknown } | null;
+
+export type VerifyLetterPassword401 = {
+  success?: boolean;
+  /** @nullable */
+  data?: VerifyLetterPassword401Data;
+  /** @nullable */
+  meta?: VerifyLetterPassword401Meta;
+  error?: string;
+};
+
+/**
+ * @nullable
+ */
+export type VerifyLetterPassword404Data = { [key: string]: unknown } | null;
+
+/**
+ * @nullable
+ */
+export type VerifyLetterPassword404Meta = { [key: string]: unknown } | null;
+
+export type VerifyLetterPassword404 = {
+  success?: boolean;
+  /** @nullable */
+  data?: VerifyLetterPassword404Data;
+  /** @nullable */
+  meta?: VerifyLetterPassword404Meta;
+  error?: string;
+};
+
+export type GetApiUsersMe200Data = {
+  id?: number;
+  nanoId?: string;
+  userType?: string;
+  /** @nullable */
+  kakaoUid?: string | null;
+  /** @nullable */
+  email?: string | null;
+  nickname?: string;
+  createdAt?: string;
+};
+
+/**
+ * @nullable
+ */
+export type GetApiUsersMe200Meta = { [key: string]: unknown } | null;
+
+/**
+ * @nullable
+ */
+export type GetApiUsersMe200Error = { [key: string]: unknown } | null;
+
+export type GetApiUsersMe200 = {
+  success?: boolean;
+  data?: GetApiUsersMe200Data;
+  /** @nullable */
+  meta?: GetApiUsersMe200Meta;
+  /** @nullable */
+  error?: GetApiUsersMe200Error;
+};
+
+/**
+ * @nullable
+ */
+export type GetApiUsersMe404Data = { [key: string]: unknown } | null;
+
+/**
+ * @nullable
+ */
+export type GetApiUsersMe404Meta = { [key: string]: unknown } | null;
+
+export type GetApiUsersMe404 = {
+  success?: boolean;
+  /** @nullable */
+  data?: GetApiUsersMe404Data;
+  /** @nullable */
+  meta?: GetApiUsersMe404Meta;
+  error?: string;
+};
+
+/**
+ * @nullable
+ */
+export type GetApiUsersMe500Data = { [key: string]: unknown } | null;
+
+/**
+ * @nullable
+ */
+export type GetApiUsersMe500Meta = { [key: string]: unknown } | null;
+
+export type GetApiUsersMe500 = {
+  success?: boolean;
+  /** @nullable */
+  data?: GetApiUsersMe500Data;
+  /** @nullable */
+  meta?: GetApiUsersMe500Meta;
   error?: string;
 };

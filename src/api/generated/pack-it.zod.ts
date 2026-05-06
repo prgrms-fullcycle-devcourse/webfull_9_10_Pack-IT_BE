@@ -8,19 +8,123 @@
 import * as zod from 'zod';
 
 /**
+ * 카카오 서버로부터 발급받은 인가 코드(code)를 전달받아 유저를 MEMBER로 승격시키고, 새로운 JWT 쿠키를 구운 뒤 프론트엔드 메인 페이지로 리다이렉트합니다.
+ * @summary 카카오 연동 로그인 콜백
+ */
+export const GetApiAuthKakaoCallbackQueryParams = zod.object({
+  "code": zod.string().describe('카카오 서버에서 넘겨준 인가 코드')
+})
+
+
+/**
  * 사용자가 입력한 초안을 선택한 카테고리와 톤에 맞춰 AI가 다듬어줍니다.
  * @summary AI 편지 문구 생성
  */
-export const PostLettersAiGenerateBody = zod.object({
+export const PostApiLettersAiGenerateBody = zod.object({
   "category": zod.string().describe('편지 카테고리 (예: 생일, 축하, 감사 등)'),
   "tone": zod.string().describe('다듬을 톤 (예: 다정하게, 격식있게, 감성적인, 담백하게)'),
   "draft_content": zod.string().describe('사용자가 작성한 편지 초안')
 })
 
-export const PostLettersAiGenerateResponse = zod.object({
+export const PostApiLettersAiGenerateResponse = zod.object({
   "success": zod.boolean().optional(),
   "data": zod.object({
   "ai_content": zod.string().optional()
+}).optional(),
+  "meta": zod.looseObject({
+
+}).nullish(),
+  "error": zod.looseObject({
+
+}).nullish()
+})
+
+
+/**
+ * AI로 다듬어진 문구와 선택한 테마를 포함하여 최종 편지 데이터를 DB에 저장하고, 링크 생성할 때 필요한 편지 고유 ID를 반환합니다.
+ * @summary 편지 최종 저장 및 링크 생성 api
+ */
+export const PostApiLettersBody = zod.object({
+  "sender_id": zod.number().nullish().describe('로그인한 사용자의 경우 유저 고유 ID (비회원은 null)'),
+  "sender_name": zod.string().describe('보내는 사람 이름'),
+  "receiver_name": zod.string().describe('받는 사람 이름'),
+  "category": zod.string().describe('편지 카테고리'),
+  "content": zod.string().describe('최종 편지 내용 (AI가 다듬어준 문구 포함)'),
+  "theme": zod.number().describe('선택한 편지 테마 번호 (1~5)'),
+  "password": zod.string().nullable().describe('발신자가 설정한 비밀번호')
+})
+
+
+/**
+ * 수신자가 전달받은 링크(letter_id)를 통해 편지의 상세 내용을 조회합니다.
+ * @summary 편지 상세 조회 (수신자용)
+ */
+export const GetApiLettersLetterIdParams = zod.object({
+  "letter_id": zod.string().describe('조회할 편지의 고유 ID (nanoid)')
+})
+
+export const GetApiLettersLetterIdResponse = zod.object({
+  "success": zod.boolean().optional(),
+  "data": zod.object({
+  "id": zod.string().optional(),
+  "senderId": zod.string().nullish(),
+  "senderName": zod.string().optional(),
+  "receiverName": zod.string().optional(),
+  "category": zod.string().optional(),
+  "content": zod.string().optional(),
+  "theme": zod.number().optional(),
+  "hasPassword": zod.boolean().optional().describe('비밀번호 설정 여부'),
+  "publishedAt": zod.iso.datetime({"offset":true}).optional()
+}).optional(),
+  "meta": zod.looseObject({
+
+}).nullish(),
+  "error": zod.looseObject({
+
+}).nullish()
+})
+
+
+/**
+ * 수신자가 입력한 비밀번호가 발신자가 설정한 비밀번호와 일치하는지 확인합니다.
+ * @summary 편지 열람 비밀번호 확인
+ */
+export const VerifyLetterPasswordParams = zod.object({
+  "letter_id": zod.string().describe('확인하고자 하는 편지의 고유 ID (nanoid)')
+})
+
+export const VerifyLetterPasswordBody = zod.object({
+  "password": zod.string().describe('수신자가 입력한 비밀번호 (숫자로 구성된 문자열)')
+})
+
+export const VerifyLetterPasswordResponse = zod.object({
+  "success": zod.boolean().optional(),
+  "data": zod.looseObject({
+
+}).nullish(),
+  "meta": zod.looseObject({
+
+}).nullish(),
+  "error": zod.looseObject({
+
+}).nullish()
+})
+
+
+/**
+ * 글로벌 미들웨어를 통해 발급/확인된 쿠키(JWT)를 기반으로 현재 접속 중인 유저의 데이터베이스 상세 정보를 조회합니다. (GUEST 및 MEMBER 모두 사용 가능)
+ * @summary 내 정보 조회
+ */
+export const GetApiUsersMeResponse = zod.object({
+  "success": zod.boolean().optional(),
+  "data": zod.object({
+  "id": zod.number().optional(),
+  "nanoId": zod.string().optional(),
+  "userType": zod.string().optional(),
+  "kakaoUid": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "nickname": zod.string().optional(),
+  "createdAt": zod.iso.datetime({"offset":true}).optional()
 }).optional(),
   "meta": zod.looseObject({
 

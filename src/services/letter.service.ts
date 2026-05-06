@@ -49,8 +49,70 @@ export const getLetterDetail = async (letterId: string) => {
     throw new AppError(ERROR.NOT_FOUND, "해당 편지를 찾을 수 없습니다.");
   }
 
-  return letter;
+  // 비밀번호 유무(boolean) 포함하여 반환
+  const { password, ...letterWithoutPassword } = letter;
+
+  return {
+    ...letterWithoutPassword,
+    hasPassword: !!password,
+  };
 };
+
+// 내가 쓴 편지 목록 조회 (무한 스크롤)
+export const getLettersByUserId = async (userId: string, cursor?: number | null) => {
+  const fetchLimit = 11;
+
+  const queryOptions: any = {
+    take: fetchLimit,
+    where: { senderId: Number(userId) },
+    orderBy: { id: 'desc' },
+  };
+
+  if (cursor && cursor > 0) {
+    queryOptions.cursor = { id: cursor };
+    queryOptions.skip = 1; 
+  }
+  const rows = await letterRepository.findLettersById(queryOptions);
+
+  const hasNextPage = rows.length > 10;
+  const data = hasNextPage ? rows.slice(0, 10) : rows;
+  const nextCursor = hasNextPage ? data[data.length - 1]!.id : null;
+  return { letters: data, nextCursor };
+}
+
+// 받은 편지 보관하기 (수신자가 내 계정에 저장)
+export const saveReceivedLetter = async (userId: number, letterId: string) => {
+  const savedLetter = await letterRepository.saveReceivedLetter(userId, letterId);
+  return savedLetter;
+}
+
+  // 받은 편지 목록 조회 (무한 스크롤)
+  export const getReceivedLetters = async (userId: number, cursor?: number | null) => {
+    const fetchLimit = 11;
+
+    const queryOptions: any = {
+      take: fetchLimit,
+      where: { receivedId: Number(userId) },
+      orderBy: { id: 'desc' },
+    };
+
+    if (cursor && cursor > 0) {
+      queryOptions.cursor = { id: cursor };
+      queryOptions.skip = 1; 
+    }
+    const rows = await letterRepository.findReceivedLetters(queryOptions);
+
+    const hasNextPage = rows.length > 10;
+    const data = hasNextPage ? rows.slice(0, 10) : rows;
+    const nextCursor = hasNextPage ? data[data.length - 1]!.id : null;
+    return { letters: data, nextCursor };
+  }
+
+  
+// 보관한 편지 삭제
+export const deleteSavedLetter = async (userId: number, letterId: string) => {
+  await letterRepository.deleteSavedLetter(userId, letterId);
+}
 
 // 편지 열람 비밀번호 확인 api
 export const verifyLetterPassword = async (letterId: string, inputPassword: string) => {
