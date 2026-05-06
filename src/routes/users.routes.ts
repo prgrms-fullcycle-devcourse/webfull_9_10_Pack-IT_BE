@@ -3,6 +3,7 @@ import { catchAsync } from "../utils/constants/response.js";
 import { checkOrIssueToken } from "../utils/middlewares/auth.js";
 import * as letterService from "../services/letter.service.js";
 import prisma from "../config/db.js";
+const router = Router();
 
 const userRouter: Router = Router();
 
