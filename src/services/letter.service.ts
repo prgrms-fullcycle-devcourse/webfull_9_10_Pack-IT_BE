@@ -97,6 +97,7 @@ export const saveReceivedLetter = async (userId: number, letterId: string) => {
     return { letters: data, nextCursor };
   }
 
+  
 // 보관한 편지 삭제
 export const deleteSavedLetter = async (userId: number, letterId: string) => {
   await letterRepository.deleteSavedLetter(userId, letterId);
