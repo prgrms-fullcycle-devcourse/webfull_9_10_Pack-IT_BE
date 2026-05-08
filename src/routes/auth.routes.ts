@@ -93,7 +93,7 @@ authRouter.get(
         maxAge: 60 * 60 * 1000,
       });
 
-      const redirectUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      const redirectUrl = process.env.FRONTEND_URL || "http://localhost:5173";
       res.redirect(redirectUrl);
     } catch (error) {
       console.error("카카오 로그인 실패:", error);

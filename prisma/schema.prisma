@@ -16,6 +16,7 @@ model User {
   kakaoUid     String?       @unique @map("kakao_uid")
   nickname     String?
   createdAt    DateTime      @default(now()) @map("created_at")
+  lastAccessedAt DateTime      @default(now()) @map("last_accessed_at")
   
   sentLetters  Letter[]      @relation("SentLetters")
   savedLetters SavedLetter[] @relation("UserSavedLetters")

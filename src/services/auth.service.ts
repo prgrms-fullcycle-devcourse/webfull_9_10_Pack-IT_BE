@@ -2,6 +2,27 @@ import jwt from "jsonwebtoken";
 import axios from "axios";
 import prisma from "../config/db.js";
 
+export const generateTokens = async (nanoId: string, userType: string) => {
+  const accessToken = jwt.sign(
+    { nano_id: nanoId, user_type: userType },
+    process.env.JWT_SECRET as string,
+    { expiresIn: "1h" },
+  );
+
+  const refreshToken = jwt.sign(
+    { nano_id: nanoId },
+    process.env.JWT_REFRESH_SECRET as string,
+    { expiresIn: "14d" },
+  );
+
+  await prisma.user.update({
+    where: { nanoId: nanoId },
+    data: { lastAccessedAt: new Date() },
+  });
+
+  return { accessToken, refreshToken };
+};
+
 export const authService = {
   linkKakaoAccount: async (nanoId: string, kakaoCode: string) => {
     try {
@@ -22,6 +43,7 @@ export const authService = {
 
       const kakaoAccessToken = tokenResponse.data.access_token;
 
+      //카카오 유저 정보
       const userResponse = await axios.get(
         "https://kapi.kakao.com/v2/user/me",
         {
@@ -46,13 +68,9 @@ export const authService = {
         },
       });
 
-      const accessToken = jwt.sign(
-        { nano_id: updatedUser.nanoId, user_type: "MEMBER" },
-        process.env.JWT_SECRET as string,
-        { expiresIn: "1h" },
-      );
+      const tokens = await generateTokens(updatedUser.nanoId, "MEMBER");
 
-      return accessToken;
+      return tokens;
     } catch (error) {
       console.error("카카오 인증 서비스 통신 에러:", error);
       throw new Error("카카오 서버와 통신하는 중 문제가 발생했습니다.");
