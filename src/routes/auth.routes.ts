@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { authService } from "../services/auth.service.js";
+import { authController } from "../controllers/auth.controller.js";
 import { validateRequest } from "../utils/middlewares/validator.js";
 import { kakaoCallbackSchema } from "../schemas/authSchema.js";
 
@@ -21,11 +21,18 @@ const authRouter: Router = Router();
  *           type: string
  *         description: "카카오 서버에서 넘겨준 인가 코드"
  *         example: "kauth_code_12345abcdefg..."
+ *      - in: query
+ *        name: state
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: "현재 접속 중인 임시 유저의 nanoId (계정 연동용 이름표)"
+ *        example: "e9BAYFSMDiB7X1-Sg0Ozy"
  *     responses:
  *       302:
  *         description: 로그인 성공 및 쿠키 발급 완료 (프론트엔드 URL로 리다이렉트)
  *       400:
- *         description: 필수 데이터 누락 (인가 코드가 없는 경우)
+ *         description: 필수 데이터 누락 (인가 코드 또는 state가 없는 경우)
  *         content:
  *           application/json:
  *             schema:
@@ -76,33 +83,7 @@ const authRouter: Router = Router();
 authRouter.get(
   "/kakao/callback",
   validateRequest(kakaoCallbackSchema),
-  async (req: Request, res: Response) => {
-    try {
-      const code = req.query.code as string;
-      const currentNanoId = req.user!.nano_id;
-
-      const newAccessToken = await authService.linkKakaoAccount(
-        currentNanoId,
-        code,
-      );
-
-      res.cookie("accessToken", newAccessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        maxAge: 60 * 60 * 1000,
-      });
-
-      const redirectUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-      res.redirect(redirectUrl);
-    } catch (error) {
-      console.error("카카오 로그인 실패:", error);
-      res.status(500).json({
-        success: false,
-        message: "카카오 로그인 중 오류가 발생했습니다.",
-      });
-    }
-  },
+  authController.kakaoLoginCallback,
 );
 
 export default authRouter;
