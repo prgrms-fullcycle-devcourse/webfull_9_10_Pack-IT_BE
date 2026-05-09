@@ -126,7 +126,12 @@ export const verifyLetterPassword = async (letterId: string, inputPassword: stri
 
   // 비밀번호가 설정되지 않은 편지인 경우
   if (!letter.password) {
-    return { isCorrect: true }; // 비밀번호가 없으면 바로 통과
+    // 프론트에서 비밀번호를 입력해서 보냈다면(inputPassword가 존재) -> 잘못된 요청
+    if (inputPassword) {
+      throw new AppError(ERROR.UNAUTHORIZED, "이 편지는 비밀번호가 설정되지 않았습니다.");
+    }
+    // 비밀번호가 없고, 입력도 안 했다면 -> 정상 통과
+    return { isCorrect: true };
   }
 
   // bcrypt를 이용해 비밀번호 비교

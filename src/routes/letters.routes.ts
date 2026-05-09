@@ -282,7 +282,7 @@
  *                     hasPassword:
  *                       type: boolean
  *                       description: "비밀번호 설정 여부"
- *                       example: flase
+ *                       example: false
  *                     publishedAt:
  *                       type: string
  *                       format: date-time
@@ -392,7 +392,10 @@
  *                   nullable: true
  *                   example: null
  *       401:
- *         description: 비밀번호 불일치
+ *         description: |
+ *           인증 실패
+ *           - 비밀번호가 틀린 경우: "비밀번호가 일치하지 않습니다."
+ *           - 비밀번호가 없는 편지에 비번을 입력한 경우: "이 편지는 비밀번호가 설정되지 않았습니다."
  *         content:
  *           application/json:
  *             schema:
