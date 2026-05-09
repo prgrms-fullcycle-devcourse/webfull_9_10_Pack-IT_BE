@@ -17,7 +17,7 @@ export const authController = {
         httpOnly: false,
         secure: process.env.NODE_ENV === "production",
         maxAge: 1000 * 60 * 60,
-        sameSite: "lax", // 크로스 도메인 리다이렉트 대응
+        sameSite: "lax",
       });
 
       res.cookie("refreshToken", tokens.refreshToken, {
@@ -27,8 +27,8 @@ export const authController = {
         sameSite: "lax",
       });
 
-      const redirectUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-      res.redirect(redirectUrl);
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+      res.redirect(`${frontendUrl}/kakaoauthCheck`);
     } catch (error) {
       console.error("카카오 로그인 컨트롤러 에러 :", error);
       const errorUrl = process.env.FRONTEND_URL || "http://localhost:5173";
