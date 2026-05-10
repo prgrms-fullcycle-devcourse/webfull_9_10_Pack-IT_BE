@@ -1,6 +1,12 @@
 import prisma from "../config/db.js";
 
 export const userRepository = {
+  // nanoId로 유저 찾기
+  findUserByNanoId: async (nanoId: string) => {
+    return await prisma.user.findUnique({
+      where: { nanoId: nanoId },
+    });
+  },
   // GUEST 생성
   createGuestUser: async (nanoId: string) => {
     await prisma.user.create({

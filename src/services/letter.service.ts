@@ -2,26 +2,27 @@ import { nanoid } from 'nanoid';
 import * as letterRepository from '../repositories/letter.repository.js';
 import { AppError, ERROR } from '../utils/constants/response.js';
 import bcrypt from 'bcrypt';
+import { userRepository } from "../repositories/user.repository.js";
 
 /**
  * 최종 편지 생성 및 DB 저장 서비스
  */
-export const createLetter = async (letterData: {
-  sender_name: string;
-  receiver_name: string;
-  category: string;
-  content: string;
-  theme: number;
-  sender_id?: number; // 회원일 경우 유저 ID
-}) => {
+export const createLetter = async (letterData: any, verifiedNanoId: string) => {
   try {
+    // nano_id를 이용해 User 테이블에서 실제 고유 숫자 id를 조회
+    const user = await userRepository.findUserByNanoId(verifiedNanoId);
+    
+    if (!user) {
+      throw new AppError(ERROR.NOT_FOUND, "유저 정보를 찾을 수 없습니다.");
+    }
     // 공유 링크용 고유 ID 생성
     const letterLinkId = nanoid();
 
     // Repository를 통해 Prisma로 DB 저장
     const savedLetter = await letterRepository.saveLetter({
       nano_id: letterLinkId,
-      ...letterData
+      ...letterData,
+      sender_id: user.id
     });
 
     // 생성된 데이터 반환 (프론트에는 ID와 생성일 등을 돌려줌)
