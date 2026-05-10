@@ -4,9 +4,13 @@
  *   post:
  *     operationId: generateAiLetterContent
  *     summary: AI 편지 문구 생성
- *     description: 사용자가 입력한 초안을 선택한 카테고리와 톤에 맞춰 AI가 다듬어줍니다.
+ *     description: >
+ *       사용자가 작성한 편지 초안과 선택한 카테고리, 톤을 기반으로 AI가 다듬어진 편지 문구를 생성하여 반환합니다.
+ *       인증 미들웨어가 적용되어 있으며, 토큰이 없을 경우 게스트 계정을 자동 생성하고 쿠키(accessToken)를 발급합니다.
  *     tags:
  *       - Letters
+ *     security:
+ *       - cookieAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -75,6 +79,17 @@
  *                 error:
  *                   type: string
  *                   example: "잘못된 요청입니다"
+ *       401:
+ *         description: 인증 실패 (토큰 만료 또는 인증 정보 없음)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: 에러 메시지
+ *                   example: "인증이 만료되었습니다. 다시 시도해주세요."
  *       500:
  *         description: 서버 에러 (AI 생성 실패)
  *         content:
@@ -104,9 +119,13 @@
  *   post:
  *     operationId: createLetter
  *     summary: 편지 최종 저장 및 링크 생성 api
- *     description: AI로 다듬어진 문구와 선택한 테마를 포함하여 최종 편지 데이터를 DB에 저장하고, 링크 생성할 때 필요한 편지 고유 ID를 반환합니다.
+ *     description: >
+ *       최종 편지 데이터를 DB에 저장하고 고유 ID를 반환합니다.
+ *       발신자 식별을 위해 인증 미들웨어가 적용됩니다.
  *     tags:
  *       - Letters
+ *     security:
+ *       - cookieAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -119,7 +138,6 @@
  *               - category
  *               - content
  *               - theme
- *               - password
  *             properties:
  *               sender_id:
  *                 type: integer
@@ -203,6 +221,17 @@
  *                 error:
  *                   type: string
  *                   example: "잘못된 요청입니다"
+ *       401:
+ *         description: 인증 실패 (토큰 만료 또는 인증 정보 없음)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: 에러 메시지
+ *                   example: "인증이 만료되었습니다. 다시 시도해주세요."
  *       500:
  *         description: 서버 에러 (DB 저장 실패 등)
  *         content:
@@ -232,9 +261,13 @@
  *   get:
  *     operationId: getLetterDetail
  *     summary: 편지 상세 조회 (수신자용)
- *     description: 수신자가 전달받은 링크(letter_id)를 통해 편지의 상세 내용을 조회합니다.
+ *     description: >
+ *       링크를 통해 편지 상세 내용을 조회합니다.
+ *       비밀번호 설정 여부는 `/api/letters/{letter_id}/check-password` API를 통해 먼저 확인하세요.
  *     tags:
  *       - Letters
+ *     security:
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: letter_id
@@ -291,6 +324,17 @@
  *                   type: object
  *                   nullable: true
  *                   example: null
+ *       401:
+ *         description: 인증 실패 (토큰 만료 또는 인증 정보 없음)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: 에러 메시지
+ *                   example: "인증이 만료되었습니다. 다시 시도해주세요."
  *       404:
  *         description: 해당 편지를 찾을 수 없음
  *         content:
@@ -343,6 +387,8 @@
  *     description: 편지에 비밀번호가 설정되어 있는지 여부를 반환합니다.
  *     tags:
  *       - Letters
+ *     security:
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: letter_id
@@ -374,6 +420,17 @@
  *                 error:
  *                   type: string
  *                   example: null
+ *       401:
+ *         description: 인증 실패 (토큰 만료 또는 인증 정보 없음)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: 에러 메시지
+ *                   example: "인증이 만료되었습니다. 다시 시도해주세요."
  *       404:
  *         description: 해당 편지를 찾을 수 없음
  *         content:
@@ -406,6 +463,8 @@
  *     description: 수신자가 입력한 비밀번호가 발신자가 설정한 비밀번호와 일치하는지 확인합니다.
  *     tags:
  *       - Letters
+ *     security:
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: letter_id
@@ -500,13 +559,25 @@
 import { Router, type Request, type Response } from 'express';
 import * as letterService from '../services/ai.service.js';
 import * as createLetter from '../services/letter.service.js';
-import { catchAsync, SUCCESS } from "../utils/constants/response.js";
-import { verifyLetterPassword} from '../services/letter.service.js';
+import { AppError, catchAsync, ERROR, SUCCESS } from "../utils/constants/response.js";
+import { checkOrIssueToken } from "../utils/middlewares/auth.js";
 
 const router: Router = Router();
 
+// 인증된 사용자 정보 가져오기 헬퍼 함수
+const getAuthUser = (req: Request) => {
+    if (!req.user) {
+        throw new AppError(ERROR.UNAUTHORIZED, "인증 정보가 없습니다.");
+    }
+    return req.user;
+};
+
 // ai 문구 변환 api
-router.post('/ai/generate', catchAsync(async (req: Request, res: Response) => {
+router.post('/ai/generate', checkOrIssueToken, catchAsync(async (req: Request, res: Response) => {
+
+    // 인증된 사용자 정보 가져오기
+    getAuthUser(req);
+
     const { category, tone, draft_content } = req.body;
 
     // 서비스 호출
@@ -521,14 +592,16 @@ router.post('/ai/generate', catchAsync(async (req: Request, res: Response) => {
   }));
 
 // 편지 최종 및 링크 생성 api
-router.post('/', catchAsync(async (req: Request, res: Response) => {
-    const result = await createLetter.createLetter(req.body);
+router.post('/', checkOrIssueToken, catchAsync(async (req: Request, res: Response) => {
+
+    const { nano_id } = getAuthUser(req);
+    const result = await createLetter.createLetter(req.body, nano_id);
 
     res.status(201).json(SUCCESS(result));
 }));
 
 // 편지 상세 조회 api (수신자용)
-router.get('/:letter_id', catchAsync(async (req: Request, res: Response) => {
+router.get('/:letter_id', checkOrIssueToken, catchAsync(async (req: Request, res: Response) => {
   const { letter_id } = req.params;
   const letter = await createLetter.getLetterDetail(letter_id as string);
 
@@ -537,7 +610,7 @@ router.get('/:letter_id', catchAsync(async (req: Request, res: Response) => {
 }));
 
 // 비밀번호 유무 확인 api
-router.get('/:letter_id/check-password', catchAsync(async (req: Request, res: Response) => {
+router.get('/:letter_id/check-password', checkOrIssueToken, catchAsync(async (req: Request, res: Response) => {
   const { letter_id } = req.params;
   const result = await createLetter.checkLetterPasswordExistence(letter_id as string);
 
@@ -545,7 +618,7 @@ router.get('/:letter_id/check-password', catchAsync(async (req: Request, res: Re
 }));
 
 // 편지 열람 비밀번호 확인 api
-router.post('/:letter_id/verify', catchAsync(async (req: Request, res: Response) => {
+router.post('/:letter_id/verify', checkOrIssueToken, catchAsync(async (req: Request, res: Response) => {
   const { letter_id } = req.params;
   const { password } = req.body;
 
