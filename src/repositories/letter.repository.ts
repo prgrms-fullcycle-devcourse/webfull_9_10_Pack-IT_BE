@@ -39,6 +39,14 @@ export const findLetterById = async (id: string) => {
   });
 };
 
+// 편지의 비밀번호 존재 여부만 확인
+export const findLetterPasswordById = async (id: string) => {
+  return await prisma.letter.findUnique({
+    where: { id },
+    select: { password: true }
+  });
+};
+
   // user_id로 편지 조회 무한 스크롤
 export const findLettersById = async (queryOptions: any) => {
   return await prisma.letter.findMany(queryOptions);

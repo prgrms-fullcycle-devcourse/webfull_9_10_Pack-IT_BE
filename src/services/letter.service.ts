@@ -49,12 +49,24 @@ export const getLetterDetail = async (letterId: string) => {
     throw new AppError(ERROR.NOT_FOUND, "해당 편지를 찾을 수 없습니다.");
   }
 
-  // 비밀번호 유무(boolean) 포함하여 반환
+  // letter 객체 반환
   const { password, ...letterWithoutPassword } = letter;
 
   return {
-    ...letterWithoutPassword,
-    hasPassword: !!password,
+    ...letterWithoutPassword
+  };
+};
+
+// 비밀번호 유무 확인 응답 및 에러 처리
+export const checkLetterPasswordExistence = async (letterId: string) => {
+  const letter = await letterRepository.findLetterPasswordById(letterId);
+
+  if (!letter) {
+    throw new AppError(ERROR.NOT_FOUND, "해당 편지를 찾을 수 없습니다.");
+  }
+
+  return {
+    hasPassword: !!letter.password
   };
 };
 
