@@ -12,8 +12,10 @@ export const createLetter = async (letterData: {
   category: string;
   content: string;
   theme: number;
-  sender_id?: number; // 회원일 경우 유저 ID
-}) => {
+  // sender_id?: number; // 회원일 경우 유저 ID
+}, 
+  verifiedSenderId: string
+) => {
   try {
     // 공유 링크용 고유 ID 생성
     const letterLinkId = nanoid();
@@ -21,7 +23,8 @@ export const createLetter = async (letterData: {
     // Repository를 통해 Prisma로 DB 저장
     const savedLetter = await letterRepository.saveLetter({
       nano_id: letterLinkId,
-      ...letterData
+      ...letterData,
+      sender_id: verifiedSenderId
     });
 
     // 생성된 데이터 반환 (프론트에는 ID와 생성일 등을 돌려줌)
