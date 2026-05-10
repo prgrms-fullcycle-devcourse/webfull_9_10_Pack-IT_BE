@@ -279,10 +279,6 @@
  *                     theme:
  *                       type: number
  *                       example: 1
- *                     hasPassword:
- *                       type: boolean
- *                       description: "비밀번호 설정 여부"
- *                       example: false
  *                     publishedAt:
  *                       type: string
  *                       format: date-time
@@ -337,6 +333,68 @@
  *                 error:
  *                   type: string
  *                   example: "서버 내부 오류가 발생했습니다."
+ */
+
+/**
+ * @openapi
+ * /api/letters/{letter_id}/check-password:
+ *   get:
+ *     summary: 편지 비밀번호 유무 확인
+ *     description: 편지에 비밀번호가 설정되어 있는지 여부를 반환합니다.
+ *     tags:
+ *       - Letters
+ *     parameters:
+ *       - in: path
+ *         name: letter_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: "ffsa8-iEEnfBtKhdKZdIB"
+ *     responses:
+ *       200:
+ *         description: 비밀번호 설정 여부 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     hasPassword:
+ *                       type: boolean
+ *                       example: true
+ *                 meta:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 error:
+ *                   type: string
+ *                   example: null
+ *       404:
+ *         description: 해당 편지를 찾을 수 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 meta:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *                 error:
+ *                   type: string
+ *                   example: "해당 편지를 찾을 수 없습니다."
  */
 
 /**
@@ -476,6 +534,14 @@ router.get('/:letter_id', catchAsync(async (req: Request, res: Response) => {
 
   // 공통 성공 응답 함수 사용
   res.status(200).json(SUCCESS(letter));
+}));
+
+// 비밀번호 유무 확인 api
+router.get('/:letter_id/check-password', catchAsync(async (req: Request, res: Response) => {
+  const { letter_id } = req.params;
+  const result = await createLetter.checkLetterPasswordExistence(letter_id as string);
+
+  res.status(200).json(SUCCESS(result));
 }));
 
 // 편지 열람 비밀번호 확인 api
