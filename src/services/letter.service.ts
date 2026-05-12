@@ -105,7 +105,7 @@ export const saveReceivedLetter = async (userId: number, letterId: string) => {
 
     const queryOptions: any = {
       take: fetchLimit,
-      where: { receivedId: Number(userId) },
+      where: { userId: Number(userId) },
       orderBy: { id: 'desc' },
     };
 

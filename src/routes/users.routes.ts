@@ -10,19 +10,19 @@ const userRouter: Router = Router();
 /**
  * @swagger
  * tags:
- *   name: User Letters
- *   description: 사용자의 편지 관련 API (내가 쓴 편지, 받은 편지 보관 및 조회)
- * 
+ *   - name: User Letters
+ *     description: 사용자의 편지 관련 API (내가 쓴 편지, 받은 편지 보관 및 조회)
  * /api/users/me/letters/sent:
  *   get:
  *     summary: 내가 쓴 편지 목록 조회 (무한 스크롤)
+ *     operationId: getSentLetters
  *     tags: [User Letters]
  *     parameters:
  *       - in: query
  *         name: cursor
  *         schema:
- *           type: integer
- *         description: 마지막으로 조회된 편지의 ID (다음 페이지 조회를 위한 커서)
+ *           type: string
+ *         description: 마지막으로 조회된 편지의 ID (Letter.id가 TEXT이므로 string)
  *     responses:
  *       200:
  *         description: 조회 성공
@@ -31,40 +31,32 @@ const userRouter: Router = Router();
  *             schema:
  *               type: object
  *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
+ *                 success: { type: boolean, example: true }
  *                 data:
  *                   type: object
  *                   properties:
- *                     nano_id:
- *                       type: string
- *                       example: "abc123def"
- *                 meta:
- *                   type: object
- *                   properties:
- *                     nextCursor:
- *                       type: integer
- *                       nullable: true
- *                       example: 10
- *                     hasNextPage:
- *                       type: boolean
- *                       example: true
- *                 error:
- *                   type: object
- *                   nullable: true
- *                   example: null
- * 
+ *                     letters:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Letter'
+ *                     meta:
+ *                       type: object
+ *                       properties:
+ *                         nano_id: { type: string, example: "abc123def" }
+ *                         nextCursor: { type: string, nullable: true, example: "letter_uuid_456" }
+ *                         hasNextPage: { type: boolean, example: true }
+ *                 error: { type: object, nullable: true, example: null }
  * /api/users/me/letters/received:
  *   get:
  *     summary: 받은 편지 목록 조회 (무한 스크롤)
+ *     operationId: getReceivedLetters
  *     tags: [User Letters]
  *     parameters:
  *       - in: query
  *         name: cursor
  *         schema:
  *           type: integer
- *         description: 마지막으로 조회된 편지의 ID
+ *         description: 마지막으로 조회된 보관함 아이템의 ID (saved_letter.id가 SERIAL이므로 integer)
  *     responses:
  *       200:
  *         description: 조회 성공
@@ -73,40 +65,24 @@ const userRouter: Router = Router();
  *             schema:
  *               type: object
  *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
+ *                 success: { type: boolean, example: true }
  *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: integer
- *                         example: 1
- *                       title:
- *                         type: string
- *                         example: "반가워요!"
- *                       content:
- *                         type: string
- *                         example: "받은 편지 내용입니다."
- *                       createdAt:
- *                         type: string
- *                         format: date-time
- *                         example: "2026-05-06T12:00:00Z"
- *                 meta:
  *                   type: object
  *                   properties:
- *                     nextCursor:
- *                       type: integer
- *                       nullable: true
- *                       example: null
- *                     hasNextPage:
- *                       type: boolean
- *                       example: false
+ *                     letters:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/SavedLetter'
+ *                     meta:
+ *                       type: object
+ *                       properties:
+ *                         nextCursor: { type: integer, nullable: true, example: 15 }
+ *                         hasNextPage: { type: boolean, example: false }
+ *                 error: { type: object, nullable: true, example: null }
  *   post:
  *     summary: 받은 편지 보관하기
- *     description: 수신한 편지를 내 계정의 보관함에 저장합니다.
+ *     operationId: saveLetter
+ *     description: 수신한 편지를 내 계정의 보관함(saved_letter)에 저장합니다.
  *     tags: [User Letters]
  *     requestBody:
  *       required: true
@@ -126,25 +102,14 @@ const userRouter: Router = Router();
  *             schema:
  *               type: object
  *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
+ *                 success: { type: boolean, example: true }
  *                 data:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: integer
- *                       example: 5
- *                     userId:
- *                       type: integer
- *                       example: 1
- *                     letterId:
- *                       type: integer
- *                       example: 101
- * 
+ *                   $ref: '#/components/schemas/SavedLetter'
+ *                 error: { type: object, nullable: true, example: null }
  * /api/users/me/letters/received/{letterId}:
  *   delete:
  *     summary: 보관한 편지 삭제
+ *     operationId: deleteSavedLetter
  *     tags: [User Letters]
  *     parameters:
  *       - in: path
@@ -152,7 +117,7 @@ const userRouter: Router = Router();
  *         required: true
  *         schema:
  *           type: string
- *         description: 삭제할 편지의 ID (nanoId)
+ *         description: 삭제할 편지의 ID (Letter 테이블의 PK)
  *     responses:
  *       200:
  *         description: 삭제 성공
@@ -161,42 +126,11 @@ const userRouter: Router = Router();
  *             schema:
  *               type: object
  *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: object
- *                   nullable: true
- *                   example: null
- *                 meta:
- *                   type: object
- *                   nullable: true
- *                   example: null
+ *                 success: { type: boolean, example: true }
+ *                 data: { type: object, nullable: true, example: null }
+ *                 meta: { type: object, nullable: true, example: null }
+ *                 error: { type: object, nullable: true, example: null }
  */
-
-// 내가 쓴 편지 목록 무한 스크롤
-userRouter.get("/me/letters/sent", checkOrIssueToken, catchAsync(async (req: Request, res: Response) => {
-  const user = req.user;
-  const cursor = req.query.cursor ? Number(req.query.cursor) : null;
-
-  if (!user) {
-    throw new Error("인증되지 않은 사용자입니다."); // 에러 코드 수정
-  }
-
-  const letters = await letterService.getLettersByUserId(user.nano_id, cursor);
-
-  return res.status(200).json({
-    success: true,
-    data: {
-      nano_id: user?.nano_id,
-    },
-    meta: {
-      nextCursor: letters.nextCursor,
-      hasNextPage: letters.nextCursor !== null,
-    },
-    error: null,
-  }); 
-}));
 
 // 받은 편지 보관하기 (수신자가 내 계정에 저장)
 userRouter.post("/me/letters/received", checkOrIssueToken, catchAsync(async (req: any, res: Response) => {
@@ -220,7 +154,9 @@ userRouter.get("/me/letters/received", checkOrIssueToken, catchAsync(async (req:
 
   return res.status(200).json({
     success: true,
-    data: letters.letters,
+    data: { 
+      letters: letters.letters 
+    },
     meta: {
       nextCursor: letters.nextCursor,
       hasNextPage: letters.nextCursor !== null,
