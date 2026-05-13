@@ -237,7 +237,13 @@ userRouter.delete("/me/letters/received/:letterId", checkOrIssueToken, catchAsyn
   const user = req.user;
   const { letterId } = req.params;
 
-  await letterService.deleteSavedLetter(user.nano_id, letterId);
+  const userData = await userRepository.findByNanoId(user.nano_id);
+  if (!userData) {
+    throw new Error("인증되지 않은 사용자입니다.");
+  }
+  const intId = userData.id;
+
+  await letterService.deleteSavedLetter(intId, letterId);
 
   return res.status(200).json({
     success: true,
