@@ -36,11 +36,38 @@ const userRouter: Router = Router();
  *                   type: boolean
  *                   example: true
  *                 data:
- *                   type: object
- *                   properties:
- *                     nano_id:
- *                       type: string
- *                       example: "abc123def"
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         description: 보관함 레코드 고유 ID
+ *                         example: 1
+ *                       senderId:
+ *                         type: integer
+ *                         nullable: true
+ *                         example: 123
+ *                       senderName:
+ *                         type: string
+ *                         example: "홍길동"
+ *                       receiverName:
+ *                         type: string
+ *                         example: "김철수"
+ *                       category:
+ *                         type: string
+ *                         example: "일반"
+ *                       content:
+ *                         type: string
+ *                         example: "받은 편지 내용입니다."
+ *                       theme:
+ *                         type: integer
+ *                         example: 1
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                         description: 편지 발행 시간 (publishedAt)
+ *                         example: "2026-05-06T12:00:00Z"
  *                 meta:
  *                   type: object
  *                   properties:
@@ -204,7 +231,7 @@ userRouter.get("/me/letters/sent", checkOrIssueToken, catchAsync(async (req: Req
   return res.status(200).json({
     success: true,
     data: {
-      nano_id: user?.nano_id,
+      letters: letters.letters,
     },
     meta: {
       nextCursor: letters.nextCursor,
@@ -245,7 +272,9 @@ userRouter.get("/me/letters/received", checkOrIssueToken, catchAsync(async (req:
 
   return res.status(200).json({
     success: true,
-    data: letters.letters,
+    data: { 
+      letters: letters.letters
+    },
     meta: {
       nextCursor: letters.nextCursor,
       hasNextPage: letters.nextCursor !== null,
