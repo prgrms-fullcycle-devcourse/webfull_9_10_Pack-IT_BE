@@ -87,10 +87,18 @@ export const getLettersByUserId = async (userId: string, cursor?: number | null)
   }
   const rows = await letterRepository.findLettersById(queryOptions);
 
+      const data = rows.map((row: any) => {
+      const { password, ...letterWithoutPw } = row.letter; 
+      return {
+        id: row.id,          
+        ...letterWithoutPw,    
+        createdAt: letterWithoutPw.publishedAt 
+      };
+    });
   const hasNextPage = rows.length > 10;
-  const data = hasNextPage ? rows.slice(0, 10) : rows;
-  const nextCursor = hasNextPage ? data[data.length - 1]!.id : null;
-  return { letters: data, nextCursor };
+  const finaldata = hasNextPage ? rows.slice(0, 10) : rows;
+  const nextCursor = hasNextPage ? finaldata[finaldata.length - 1]!.id : null;
+  return { letters: finaldata, nextCursor };
 }
 
 // 받은 편지 보관하기 (수신자가 내 계정에 저장)

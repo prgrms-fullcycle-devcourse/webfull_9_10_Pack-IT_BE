@@ -34,19 +34,53 @@ const userRouter: Router = Router();
  *               properties:
  *                 success: { type: boolean, example: true }
  *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         description: 보관함 레코드 고유 ID
+ *                         example: 1
+ *                       senderId:
+ *                         type: integer
+ *                         nullable: true
+ *                         example: 123
+ *                       senderName:
+ *                         type: string
+ *                         example: "홍길동"
+ *                       receiverName:
+ *                         type: string
+ *                         example: "김철수"
+ *                       category:
+ *                         type: string
+ *                         example: "일반"
+ *                       content:
+ *                         type: string
+ *                         example: "받은 편지 내용입니다."
+ *                       theme:
+ *                         type: integer
+ *                         example: 1
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                         description: 편지 발행 시간 (publishedAt)
+ *                         example: "2026-05-06T12:00:00Z"
+ *                 meta:
  *                   type: object
  *                   properties:
- *                     letters:
- *                       type: array
- *                       items:
- *                         $ref: '#/components/schemas/Letter'
- *                     meta:
- *                       type: object
- *                       properties:
- *                         nano_id: { type: string, example: "abc123def" }
- *                         nextCursor: { type: string, nullable: true, example: "letter_uuid_456" }
- *                         hasNextPage: { type: boolean, example: true }
- *                 error: { type: object, nullable: true, example: null }
+ *                     nextCursor:
+ *                       type: integer
+ *                       nullable: true
+ *                       example: 10
+ *                     hasNextPage:
+ *                       type: boolean
+ *                       example: true
+ *                 error:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ * 
  * /api/users/me/letters/received:
  *   get:
  *     summary: 받은 편지 목록 조회 (무한 스크롤)
@@ -147,7 +181,7 @@ userRouter.get("/me/letters/sent", checkOrIssueToken, catchAsync(async (req: Req
   return res.status(200).json({
     success: true,
     data: {
-      nano_id: user?.nano_id,
+      letters: letters.letters,
     },
     meta: {
       nextCursor: letters.nextCursor,
@@ -189,7 +223,7 @@ userRouter.get("/me/letters/received", checkOrIssueToken, catchAsync(async (req:
   return res.status(200).json({
     success: true,
     data: { 
-      letters: letters.letters 
+      letters: letters.letters
     },
     meta: {
       nextCursor: letters.nextCursor,
