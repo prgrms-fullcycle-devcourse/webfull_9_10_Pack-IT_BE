@@ -1,6 +1,7 @@
 import prisma from "../config/db.js";
 import bcrypt from "bcrypt";
-import { Prisma } from "@prisma/client";
+import pkg from "@prisma/client";
+const { Prisma } = pkg;
 import { AppError } from "../utils/constants/response.js";
 
 // 편지 데이터 저장
