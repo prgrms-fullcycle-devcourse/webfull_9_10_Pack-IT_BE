@@ -1,7 +1,7 @@
 import prisma from "../config/db.js";
 import bcrypt from "bcrypt";
 import pkg from "@prisma/client";
-const { Prisma } = pkg;
+const { Prisma } = pkg as any;
 import { AppError } from "../utils/constants/response.js";
 
 // 편지 데이터 저장
@@ -62,7 +62,7 @@ export const saveReceivedLetter = async (userId: number, letterId: string) => {
         letterId: letterId,   
       },
     });
-  } catch (error) {
+  } catch (error:any) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       throw new AppError({status: 404, message: '이미 저장했거나 존재하지 않는 편지입니다.' });
     }
