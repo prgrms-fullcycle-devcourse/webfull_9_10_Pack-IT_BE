@@ -165,7 +165,46 @@ const userRouter: Router = Router();
  *                 data: { type: object, nullable: true, example: null }
  *                 meta: { type: object, nullable: true, example: null }
  *                 error: { type: object, nullable: true, example: null }
- */
+ * components:
+ *   schemas:
+ *     SavedLetter:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: "보관함 레코드의 고유 ID (SavedLetter 테이블의 PK)"
+ *           example: 1
+ *         senderId:
+ *           type: integer
+ *           nullable: true
+ *           description: "편지를 보낸 사용자의 ID"
+ *           example: 123
+ *         senderName:
+ *           type: string
+ *           description: "발신인 이름"
+ *           example: "홍길동"
+ *         receiverName:
+ *           type: string
+ *           description: "수신인 이름"
+ *           example: "김철수"
+ *         category:
+ *           type: string
+ *           description: "편지 카테고리"
+ *           example: "응원"
+ *         content:
+ *           type: string
+ *           description: "편지 본문 내용"
+ *           example: "준비하신 시험 꼭 합격하시길 응원합니다!"
+ *         theme:
+ *           type: integer
+ *           description: "적용된 테마 번호"
+ *           example: 1
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: "편지가 발행된 시간 (DB의 published_at 필드)"
+ *           example: "2026-05-13T18:45:00Z"
+*/
 
 // 내가 쓴 편지 목록 무한 스크롤
 userRouter.get("/me/letters/sent", checkOrIssueToken, catchAsync(async (req: Request, res: Response) => {
