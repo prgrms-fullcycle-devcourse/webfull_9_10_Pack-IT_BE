@@ -2,6 +2,7 @@ import express, { Router, type Request, type Response } from 'express';
 import { catchAsync } from "../utils/constants/response.js";
 import { checkOrIssueToken } from "../utils/middlewares/auth.js";
 import * as letterService from "../services/letter.service.js";
+import * as userRepository from "../repositories/user.repository.js";
 import prisma from "../config/db.js";
 const router = Router();
 
@@ -132,6 +133,31 @@ const userRouter: Router = Router();
  *                 error: { type: object, nullable: true, example: null }
  */
 
+// 내가 쓴 편지 목록 무한 스크롤
+userRouter.get("/me/letters/sent", checkOrIssueToken, catchAsync(async (req: Request, res: Response) => {
+  const user = req.user;
+  const cursor = req.query.cursor ? Number(req.query.cursor) : null;
+
+  if (!user) {
+    throw new Error("인증되지 않은 사용자입니다."); // 에러 코드 수정
+  }
+
+  const letters = await letterService.getLettersByUserId(user.nano_id, cursor);
+
+  return res.status(200).json({
+    success: true,
+    data: {
+      nano_id: user?.nano_id,
+    },
+    meta: {
+      nextCursor: letters.nextCursor,
+      hasNextPage: letters.nextCursor !== null,
+    },
+    error: null,
+  }); 
+}));
+
+
 // 받은 편지 보관하기 (수신자가 내 계정에 저장)
 userRouter.post("/me/letters/received", checkOrIssueToken, catchAsync(async (req: any, res: Response) => {
   const user = req.user;
@@ -150,7 +176,15 @@ userRouter.get("/me/letters/received", checkOrIssueToken, catchAsync(async (req:
   const user = req.user;
   let { cursor } = req.query;
 
-  const letters = await letterService.getReceivedLetters(user.nano_id, cursor);
+  const userData = await userRepository.findByNanoId(user.nano_id);
+  
+  if (!userData) {
+      throw new Error("인증되지 않은 사용자입니다.");
+  }
+
+  const intId = userData.id;
+
+  const letters = await letterService.getReceivedLetters(intId, cursor);
 
   return res.status(200).json({
     success: true,

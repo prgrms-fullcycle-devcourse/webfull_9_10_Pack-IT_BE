@@ -35,3 +35,14 @@ export const userRepository = {
     });
   },
 };
+
+export const findByNanoId = async (nanoId: string) => {
+  return await prisma.user.findFirst({
+    where: {
+      nanoId: nanoId, 
+    },
+    select: {
+      id: true, 
+    }
+  });
+};

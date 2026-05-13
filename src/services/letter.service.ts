@@ -115,10 +115,18 @@ export const saveReceivedLetter = async (userId: number, letterId: string) => {
     }
     const rows = await letterRepository.findReceivedLetters(queryOptions);
 
+    const data = rows.map((row: any) => {
+      const { password, ...letterWithoutPw } = row.letter; 
+      return {
+        id: row.id,          
+        ...letterWithoutPw,    
+        createdAt: letterWithoutPw.publishedAt 
+      };
+    });
     const hasNextPage = rows.length > 10;
-    const data = hasNextPage ? rows.slice(0, 10) : rows;
+    const finaldata = hasNextPage ? rows.slice(0, 10) : rows;
     const nextCursor = hasNextPage ? data[data.length - 1]!.id : null;
-    return { letters: data, nextCursor };
+    return { letters: finaldata, nextCursor };
   }
 
   
