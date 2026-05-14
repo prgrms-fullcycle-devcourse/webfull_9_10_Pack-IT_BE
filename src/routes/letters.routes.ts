@@ -143,6 +143,7 @@
  *               sender_id:
  *                 type: integer
  *                 nullable: false
+ *                 minimum: 1
  *                 description: "로그인한 사용자의 경우 유저 고유 ID"
  *                 example: 1
  *               sender_name:
