@@ -34,52 +34,20 @@ const userRouter: Router = Router();
  *               properties:
  *                 success: { type: boolean, example: true }
  *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: integer
- *                         description: 보관함 레코드 고유 ID
- *                         example: 1
- *                       senderId:
- *                         type: integer
- *                         nullable: true
- *                         example: 123
- *                       senderName:
- *                         type: string
- *                         example: "홍길동"
- *                       receiverName:
- *                         type: string
- *                         example: "김철수"
- *                       category:
- *                         type: string
- *                         example: "일반"
- *                       content:
- *                         type: string
- *                         example: "받은 편지 내용입니다."
- *                       theme:
- *                         type: integer
- *                         example: 1
- *                       createdAt:
- *                         type: string
- *                         format: date-time
- *                         description: 편지 발행 시간 (publishedAt)
- *                         example: "2026-05-06T12:00:00Z"
+ *                   type: object
+ *                   properties:
+ *                     letters:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/SavedLetter'
  *                 meta:
  *                   type: object
  *                   properties:
- *                     nextCursor:
- *                       type: integer
- *                       nullable: true
- *                       example: 10
- *                     hasNextPage:
- *                       type: boolean
- *                       example: true
- *                 error:
- *                   type: object
- *                   nullable: true
- *                   example: null
+ *                     userId: { type: string, example: "a1b2c3d4-e5f6-7890" }
+ *                     totalCount: { type: integer, example: 157, description: "조건에 맞는 전체 편지 개수" }
+ *                     nextCursor: { type: integer, nullable: true, example: 15 }
+ *                     hasNextPage: { type: boolean, example: false }
+ *                 error: { type: object, nullable: true, example: null }
  * 
  * /api/users/me/letters/received:
  *   get:
@@ -108,11 +76,13 @@ const userRouter: Router = Router();
  *                       type: array
  *                       items:
  *                         $ref: '#/components/schemas/SavedLetter'
- *                     meta:
- *                       type: object
- *                       properties:
- *                         nextCursor: { type: integer, nullable: true, example: 15 }
- *                         hasNextPage: { type: boolean, example: false }
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     userId: { type: string, example: "a1b2c3d4-e5f6-7890" }
+ *                     totalCount: { type: integer, example: 157, description: "조건에 맞는 전체 편지 개수" }
+ *                     nextCursor: { type: integer, nullable: true, example: 15 }
+ *                     hasNextPage: { type: boolean, example: false }
  *                 error: { type: object, nullable: true, example: null }
  *   post:
  *     summary: 받은 편지 보관하기
@@ -246,8 +216,6 @@ userRouter.post("/me/letters/received", checkOrIssueToken, catchAsync(async (req
     throw new Error("인증되지 않은 사용자입니다.");
   }
   const intId = userData.id;
-  console.log("Received letterId:", letterId);
-  console.log("User intId:", intId);
   
   const letter = await letterService.saveReceivedLetter(intId, letterId);
 
