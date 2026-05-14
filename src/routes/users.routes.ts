@@ -227,6 +227,7 @@ userRouter.get("/me/letters/sent", checkOrIssueToken, catchAsync(async (req: Req
     },
     meta: {
       userId: user!.nano_id,
+      totalCount: letters.totalCount,
       nextCursor: letters.nextCursor,
       hasNextPage: letters.nextCursor !== null,
     },
@@ -283,6 +284,7 @@ userRouter.get("/me/letters/received", checkOrIssueToken, catchAsync(async (req:
     },
     meta: {
       userId: user.nano_id,
+      totalCount: letters.totalCount,
       nextCursor: letters.nextCursor,
       hasNextPage: letters.nextCursor !== null,
     },
