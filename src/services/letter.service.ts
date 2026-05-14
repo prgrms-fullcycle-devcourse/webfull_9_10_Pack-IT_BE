@@ -78,7 +78,7 @@ export const getLettersByUserId = async (userId: number, cursor?: number | null)
   const queryOptions: any = {
     take: fetchLimit,
     where: { senderId: Number(userId) },
-    orderBy: { id: 'desc' },
+    orderBy: { publishedAt: 'desc' },
   };
 
 if (cursor && cursor > 0) {
@@ -118,7 +118,7 @@ export const saveReceivedLetter = async (userId: number, letterId: string) => {
     const queryOptions: any = {
       take: fetchLimit,
       where: { userId: Number(userId) },
-      orderBy: { id: 'desc' },
+      orderBy: { publishedAt: 'desc' },
       include: {
         letter: true,
       },
