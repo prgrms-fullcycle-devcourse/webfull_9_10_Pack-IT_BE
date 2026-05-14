@@ -105,7 +105,7 @@ if (cursor && cursor > 0) {
   return { letters: finalData, nextCursor };
 }
 
-// 받은 편지 보관하기 (수신자가 내 계정에 저장)
+// 받은 편지 보관 (수신자가 내 계정에 저장)
 export const saveReceivedLetter = async (userId: number, letterId: string) => {
   const savedLetter = await letterRepository.saveReceivedLetter(userId, letterId);
   return savedLetter;
