@@ -11,11 +11,14 @@ const { Prisma } = pkg as any;
  */
 export const createLetter = async (letterData: any, verifiedNanoId: string) => {
   // 프론트에서 보낸 sender_id가 null이거나 없는 경우 즉시 에러 반환
-    if (letterData.sender_id === undefined || letterData.sender_id === null) {
-    throw new AppError(ERROR.BAD_REQUEST, "sender_id가 누락되었습니다.");
+  if (!letterData.sender_id && letterData.sender_id !== 0) { 
+    throw new AppError(ERROR.BAD_REQUEST, "유효한 sender_id가 필요합니다.");
   }
-    
-    try {
+  if (isNaN(Number(letterData.sender_id))) {
+    throw new AppError(ERROR.BAD_REQUEST, "sender_id는 숫자 형식이어야 합니다.");
+  }
+
+  try {
     // nano_id를 이용해 User 테이블에서 실제 고유 숫자 id를 조회
     const user = await userRepository.findUserByNanoId(verifiedNanoId);
     
