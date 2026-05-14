@@ -8,13 +8,19 @@ import { userRepository } from "../repositories/user.repository.js";
  * 최종 편지 생성 및 DB 저장 서비스
  */
 export const createLetter = async (letterData: any, verifiedNanoId: string) => {
-  try {
+  // 프론트에서 보낸 sender_id가 null이거나 없는 경우 즉시 에러 반환
+    if (letterData.sender_id === undefined || letterData.sender_id === null) {
+    throw new AppError(ERROR.BAD_REQUEST, "sender_id가 누락되었습니다.");
+  }
+    
+    try {
     // nano_id를 이용해 User 테이블에서 실제 고유 숫자 id를 조회
     const user = await userRepository.findUserByNanoId(verifiedNanoId);
     
     if (!user) {
       throw new AppError(ERROR.NOT_FOUND, "유저 정보를 찾을 수 없습니다.");
     }
+    
     // 공유 링크용 고유 ID 생성
     const letterLinkId = nanoid();
 
