@@ -83,3 +83,17 @@ export const deleteSavedLetter = async (userId: number, letterId: string) => {
     },
   });
 }
+
+// 보낸 편지 총 개수
+export const countSentLetters = async (userId: number) => {
+  return await prisma.letter.count({
+    where: { senderId: userId }
+  });
+};
+
+// 받은(보관한) 편지 총 개수
+export const countReceivedLetters = async (userId: number) => {
+  return await prisma.savedLetter.count({
+    where: { userId: userId }
+  });
+};

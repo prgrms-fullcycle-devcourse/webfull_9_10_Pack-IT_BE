@@ -3,6 +3,8 @@ import * as letterRepository from '../repositories/letter.repository.js';
 import { AppError, ERROR } from '../utils/constants/response.js';
 import bcrypt from 'bcrypt';
 import { userRepository } from "../repositories/user.repository.js";
+import pkg from "@prisma/client";
+const { Prisma } = pkg as any;
 
 /**
  * 최종 편지 생성 및 DB 저장 서비스
@@ -85,16 +87,15 @@ if (cursor && cursor > 0) {
     queryOptions.cursor = { id: cursor };
     queryOptions.skip = 1; 
   }
-
+  const totalCount = await letterRepository.countSentLetters(Number(userId));
   const rows = await letterRepository.findLettersById(queryOptions);
 
   const mappedData = rows.map((row: any) => {
     const { password, ...letterWithoutPassword } = row || {};
-    
     return {
       id: row.id,          
       ...letterWithoutPassword, 
-      createdAt: letterWithoutPassword.publishedAt || null 
+      createdAt: row.publishedAt || null 
     };
   });
 
@@ -102,7 +103,7 @@ if (cursor && cursor > 0) {
   const finalData = hasNextPage ? mappedData.slice(0, 10) : mappedData;
   const nextCursor = hasNextPage ? finalData[finalData.length - 1].id : null;
 
-  return { letters: finalData, nextCursor };
+  return { letters: finalData, nextCursor, totalCount };
 }
 
 // 받은 편지 보관하기 (수신자가 내 계정에 저장)
@@ -112,23 +113,25 @@ export const saveReceivedLetter = async (userId: number, letterId: string) => {
 }
 
   // 받은 편지 목록 조회 (무한 스크롤)
-  export const getReceivedLetters = async (userId: number, cursor?: number | null) => {
-    const fetchLimit = 11;
+export const getReceivedLetters = async (userId: number, cursor?: number | null) => {
+  const fetchLimit = 11;
 
-    const queryOptions: any = {
-      take: fetchLimit,
-      where: { userId: Number(userId) },
-      orderBy: { id: 'desc' },
-      include: {
-        letter: true,
-      },
-    };
+  const queryOptions: any = {
+    take: fetchLimit,
+    where: { userId: Number(userId) },
+    orderBy: { id: 'desc' },
+    include: {
+      letter: true,
+    },
+  };
 
-if (cursor && cursor > 0) {
+  if (cursor && cursor > 0) {
     queryOptions.cursor = { id: cursor };
     queryOptions.skip = 1; 
   }
 
+  const totalCount = await letterRepository.countReceivedLetters(Number(userId));
+  
   const rows = await letterRepository.findReceivedLetters(queryOptions);
 
   const mappedData = rows.map((row: any) => {
@@ -145,8 +148,12 @@ if (cursor && cursor > 0) {
   const finalData = hasNextPage ? mappedData.slice(0, 10) : mappedData;
   const nextCursor = hasNextPage ? finalData[finalData.length - 1].id : null;
 
-  return { letters: finalData, nextCursor };
-  }
+  return { 
+    letters: finalData, 
+    nextCursor,
+    totalCount 
+  };
+};
 
   
 // 보관한 편지 삭제
