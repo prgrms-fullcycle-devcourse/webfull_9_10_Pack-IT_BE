@@ -81,24 +81,28 @@ export const getLettersByUserId = async (userId: string, cursor?: number | null)
     orderBy: { id: 'desc' },
   };
 
-  if (cursor && cursor > 0) {
+if (cursor && cursor > 0) {
     queryOptions.cursor = { id: cursor };
     queryOptions.skip = 1; 
   }
+
   const rows = await letterRepository.findLettersById(queryOptions);
 
-      const data = rows.map((row: any) => {
-      const { password, ...letterWithoutPw } = row.letter; 
-      return {
-        id: row.id,          
-        ...letterWithoutPw,    
-        createdAt: letterWithoutPw.publishedAt 
-      };
-    });
-  const hasNextPage = rows.length > 10;
-  const finaldata = hasNextPage ? rows.slice(0, 10) : rows;
-  const nextCursor = hasNextPage ? finaldata[finaldata.length - 1]!.id : null;
-  return { letters: finaldata, nextCursor };
+  const mappedData = rows.map((row: any) => {
+    const { password, ...letterWithoutPassword } = row.letter || {};
+    
+    return {
+      id: row.id,          
+      ...letterWithoutPassword, 
+      createdAt: letterWithoutPassword.publishedAt || null 
+    };
+  });
+
+  const hasNextPage = mappedData.length > 10;
+  const finalData = hasNextPage ? mappedData.slice(0, 10) : mappedData;
+  const nextCursor = hasNextPage ? finalData[finalData.length - 1].id : null;
+
+  return { letters: finalData, nextCursor };
 }
 
 // 받은 편지 보관하기 (수신자가 내 계정에 저장)
@@ -115,26 +119,33 @@ export const saveReceivedLetter = async (userId: number, letterId: string) => {
       take: fetchLimit,
       where: { userId: Number(userId) },
       orderBy: { id: 'desc' },
+      include: {
+        letter: true,
+      },
     };
 
-    if (cursor && cursor > 0) {
-      queryOptions.cursor = { id: cursor };
-      queryOptions.skip = 1; 
-    }
-    const rows = await letterRepository.findReceivedLetters(queryOptions);
+if (cursor && cursor > 0) {
+    queryOptions.cursor = { id: cursor };
+    queryOptions.skip = 1; 
+  }
 
-    const data = rows.map((row: any) => {
-      const { password, ...letterWithoutPw } = row.letter; 
-      return {
-        id: row.id,          
-        ...letterWithoutPw,    
-        createdAt: letterWithoutPw.publishedAt 
-      };
-    });
-    const hasNextPage = rows.length > 10;
-    const finaldata = hasNextPage ? rows.slice(0, 10) : rows;
-    const nextCursor = hasNextPage ? data[data.length - 1]!.id : null;
-    return { letters: finaldata, nextCursor };
+  const rows = await letterRepository.findReceivedLetters(queryOptions);
+
+  const mappedData = rows.map((row: any) => {
+    const { password, ...letterWithoutPassword } = row.letter || {};
+    
+    return {
+      id: row.id,          
+      ...letterWithoutPassword, 
+      createdAt: letterWithoutPassword.publishedAt || null 
+    };
+  });
+
+  const hasNextPage = mappedData.length > 10;
+  const finalData = hasNextPage ? mappedData.slice(0, 10) : mappedData;
+  const nextCursor = hasNextPage ? finalData[finalData.length - 1].id : null;
+
+  return { letters: finalData, nextCursor };
   }
 
   
