@@ -211,11 +211,14 @@ userRouter.get("/me/letters/sent", checkOrIssueToken, catchAsync(async (req: Req
   const user = req.user;
   const cursor = req.query.cursor ? Number(req.query.cursor) : null;
 
-  if (!user) {
+  const userData = await userRepository.findByNanoId(user!.nano_id);
+  if (!userData) {
     throw new Error("인증되지 않은 사용자입니다."); // 에러 코드 수정
   }
 
-  const letters = await letterService.getLettersByUserId(user.nano_id, cursor);
+  const intId = userData.id;
+
+  const letters = await letterService.getLettersByUserId(intId, cursor);
 
   return res.status(200).json({
     success: true,
@@ -223,7 +226,7 @@ userRouter.get("/me/letters/sent", checkOrIssueToken, catchAsync(async (req: Req
       letters: letters.letters,
     },
     meta: {
-      userId: user.nano_id,
+      userId: user!.nano_id,
       nextCursor: letters.nextCursor,
       hasNextPage: letters.nextCursor !== null,
     },
@@ -237,7 +240,20 @@ userRouter.post("/me/letters/received", checkOrIssueToken, catchAsync(async (req
   const user = req.user;
   const { letterId } = req.body;
 
-  const letter = await letterService.saveReceivedLetter(user.nano_id, letterId);
+  const userData = await userRepository.findByNanoId(user.nano_id);
+  if (!userData) {
+    throw new Error("인증되지 않은 사용자입니다.");
+  }
+  const intId = userData.id;
+  console.log("Received letterId:", letterId);
+  console.log("User intId:", intId);
+  
+  const letter = await letterService.saveReceivedLetter(intId, letterId);
+
+  if (!letter) {
+    throw new Error("편지를 저장할 수 없거나 이미 보관된 편지입니다.");
+  }
+  
   return res.status(200).json({
     success: true,
     data: letter,
