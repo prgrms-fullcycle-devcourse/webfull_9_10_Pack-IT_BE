@@ -133,6 +133,7 @@
  *           schema:
  *             type: object
  *             required:
+ *               - sender_id
  *               - sender_name
  *               - receiver_name
  *               - category
@@ -141,8 +142,8 @@
  *             properties:
  *               sender_id:
  *                 type: integer
- *                 nullable: true
- *                 description: "로그인한 사용자의 경우 유저 고유 ID (비회원은 null)"
+ *                 nullable: false
+ *                 description: "로그인한 사용자의 경우 유저 고유 ID"
  *                 example: 1
  *               sender_name:
  *                 type: string
