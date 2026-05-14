@@ -72,7 +72,7 @@ export const checkLetterPasswordExistence = async (letterId: string) => {
 };
 
 // 내가 쓴 편지 목록 조회 (무한 스크롤)
-export const getLettersByUserId = async (userId: string, cursor?: number | null) => {
+export const getLettersByUserId = async (userId: number, cursor?: number | null) => {
   const fetchLimit = 11;
 
   const queryOptions: any = {
@@ -89,7 +89,7 @@ if (cursor && cursor > 0) {
   const rows = await letterRepository.findLettersById(queryOptions);
 
   const mappedData = rows.map((row: any) => {
-    const { password, ...letterWithoutPassword } = row.letter || {};
+    const { password, ...letterWithoutPassword } = row || {};
     
     return {
       id: row.id,          
