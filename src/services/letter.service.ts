@@ -83,19 +83,24 @@ export const checkLetterPasswordExistence = async (letterId: string) => {
 };
 
 // 내가 쓴 편지 목록 조회 (무한 스크롤)
-export const getLettersByUserId = async (userId: number, cursor?: number | null) => {
-  const fetchLimit = 11;
+export const getLettersByUserId = async (userId: number, cursor?: string | null) => {
+  const limit = 10;
+  const fetchLimit = limit + 1;
 
   const queryOptions: any = {
     take: fetchLimit,
     where: { senderId: Number(userId) },
-    orderBy: { publishedAt: 'desc' },
+    orderBy: [
+      { publishedAt: 'desc' },
+      { id: 'desc' }
+    ],
   };
 
-if (cursor && cursor > 0) {
-    queryOptions.cursor = { id: cursor };
+  if (cursor) {
+    queryOptions.cursor = { nanoId: cursor }; 
     queryOptions.skip = 1; 
   }
+
   const totalCount = await letterRepository.countSentLetters(Number(userId));
   const rows = await letterRepository.findLettersById(queryOptions);
 
@@ -103,17 +108,22 @@ if (cursor && cursor > 0) {
     const { password, ...letterWithoutPassword } = row || {};
     return {
       id: row.id,          
+      nanoId: row.nanoId,  
       ...letterWithoutPassword, 
       createdAt: row.publishedAt || null 
     };
   });
 
-  const hasNextPage = mappedData.length > 10;
-  const finalData = hasNextPage ? mappedData.slice(0, 10) : mappedData;
-  const nextCursor = hasNextPage ? finalData[finalData.length - 1].id : null;
+  const hasNextPage = mappedData.length > limit;
+  const finalData = hasNextPage ? mappedData.slice(0, limit) : mappedData;
+  const nextCursor = hasNextPage ? finalData[finalData.length - 1].nanoId : null;
 
-  return { letters: finalData, nextCursor, totalCount };
-}
+  return { 
+    letters: finalData, 
+    nextCursor, 
+    totalCount 
+  };
+};
 
 // 받은 편지 보관하기 (수신자가 내 계정에 저장)
 export const saveReceivedLetter = async (userId: number, letterId: string) => {
@@ -122,21 +132,24 @@ export const saveReceivedLetter = async (userId: number, letterId: string) => {
 }
 
   // 받은 편지 목록 조회 (무한 스크롤)
-export const getReceivedLetters = async (userId: number, cursor?: number | null) => {
+export const getReceivedLetters = async (userId: number, cursor?: string | null) => {
   const fetchLimit = 11;
 
   const queryOptions: any = {
     take: fetchLimit,
     where: { userId: Number(userId) },
-    orderBy: { id: 'desc' },
+    orderBy: [
+      { letter: { publishedAt: 'desc' } }, 
+      { id: 'desc' }
+    ],
     include: {
       letter: true,
     },
   };
 
-  if (cursor && cursor > 0) {
-    queryOptions.cursor = { id: cursor };
-    queryOptions.skip = 1; 
+  if (cursor) {
+      queryOptions.cursor = { nanoId: cursor }; 
+      queryOptions.skip = 1; 
   }
 
   const totalCount = await letterRepository.countReceivedLetters(Number(userId));
@@ -148,14 +161,15 @@ export const getReceivedLetters = async (userId: number, cursor?: number | null)
     
     return {
       id: row.id,          
-      ...letterWithoutPassword, 
+      ...letterWithoutPassword,
+      nanoId: row.letter.nanoId,
       createdAt: letterWithoutPassword.publishedAt || null 
     };
   });
 
   const hasNextPage = mappedData.length > 10;
   const finalData = hasNextPage ? mappedData.slice(0, 10) : mappedData;
-  const nextCursor = hasNextPage ? finalData[finalData.length - 1].id : null;
+  const nextCursor = hasNextPage ? finalData[finalData.length - 1].nanoId : null;
 
   return { 
     letters: finalData, 
