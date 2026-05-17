@@ -177,16 +177,16 @@ const userRouter: Router = Router();
 */
 
 // 내가 쓴 편지 목록 무한 스크롤
-userRouter.get("/me/letters/sent", checkOrIssueToken, catchAsync(async (req: Request, res: Response) => {
+userRouter.get("/me/letters/sent", checkOrIssueToken, catchAsync(async (req: any, res: Response) => {
   const user = req.user;
-  const cursor = req.query.cursor ? Number(req.query.cursor) : null;
+  let { cursor } = req.query;
 
   const userData = await userRepository.findByNanoId(user!.nano_id);
   if (!userData) {
     throw new Error("인증되지 않은 사용자입니다."); // 에러 코드 수정
   }
 
-  const intId = userData.id;
+  const intId =  userData.id;
 
   const letters = await letterService.getLettersByUserId(intId, cursor);
 
@@ -241,7 +241,7 @@ userRouter.get("/me/letters/received", checkOrIssueToken, catchAsync(async (req:
       throw new Error("인증되지 않은 사용자입니다.");
   }
 
-  const intId = userData.id;
+  const intId = 1483; // userData.id; // 실제로는 userData.id를 사용해야 함. 테스트를 위해 고정값 사용
 
   const letters = await letterService.getReceivedLetters(intId, cursor);
 

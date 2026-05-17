@@ -97,7 +97,7 @@ export const getLettersByUserId = async (userId: number, cursor?: string | null)
   };
 
   if (cursor) {
-    queryOptions.cursor = { nanoId: cursor }; 
+    queryOptions.cursor = { id: cursor }; 
     queryOptions.skip = 1; 
   }
 
@@ -113,10 +113,10 @@ export const getLettersByUserId = async (userId: number, cursor?: string | null)
       createdAt: row.publishedAt || null 
     };
   });
-
+  
   const hasNextPage = mappedData.length > limit;
   const finalData = hasNextPage ? mappedData.slice(0, limit) : mappedData;
-  const nextCursor = hasNextPage ? finalData[finalData.length - 1].nanoId : null;
+  const nextCursor = hasNextPage ? finalData[finalData.length - 1].id : null;
 
   return { 
     letters: finalData, 
@@ -148,7 +148,7 @@ export const getReceivedLetters = async (userId: number, cursor?: string | null)
   };
 
   if (cursor) {
-      queryOptions.cursor = { nanoId: cursor }; 
+      queryOptions.cursor = { id: Number(cursor) }; 
       queryOptions.skip = 1; 
   }
 
@@ -160,16 +160,16 @@ export const getReceivedLetters = async (userId: number, cursor?: string | null)
     const { password, ...letterWithoutPassword } = row.letter || {};
     
     return {
-      id: row.id,          
+      id: row.id,
+      savedLetterId: row.id,          
       ...letterWithoutPassword,
-      nanoId: row.letter.nanoId,
       createdAt: letterWithoutPassword.publishedAt || null 
     };
   });
 
   const hasNextPage = mappedData.length > 10;
   const finalData = hasNextPage ? mappedData.slice(0, 10) : mappedData;
-  const nextCursor = hasNextPage ? finalData[finalData.length - 1].nanoId : null;
+  const nextCursor = hasNextPage ? finalData[finalData.length - 1].savedLetterId : null;
 
   return { 
     letters: finalData, 

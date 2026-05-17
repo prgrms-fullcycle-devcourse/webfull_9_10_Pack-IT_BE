@@ -53,6 +53,11 @@ export const findLettersById = async (queryOptions: any) => {
   return await prisma.letter.findMany(queryOptions);
 }
 
+// 보관한 편지 불러오기 무한 스크롤
+export const findReceivedLetters = async (queryOptions: any) => {
+  return await prisma.savedLetter.findMany(queryOptions);
+}
+
 // 받은 편지 보관하기 (수신자가 내 계정에 저장)
 export const saveReceivedLetter = async (userId: number, letterId: string) => {
   try {
@@ -68,11 +73,6 @@ export const saveReceivedLetter = async (userId: number, letterId: string) => {
     }
   }
 };
-
-// 보관한 편지 불러오기 무한 스크롤
-export const findReceivedLetters = async (queryOptions: any) => {
-  return await prisma.savedLetter.findMany(queryOptions);
-}
 
 // 보관한 편지 삭제
 export const deleteSavedLetter = async (userId: number, letterId: string) => {
